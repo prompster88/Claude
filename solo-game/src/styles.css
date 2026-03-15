@@ -22,7 +22,8 @@
 
   /* Typography */
   --font-display: 'Syne', system-ui, sans-serif;
-  --font-body:    'Space Grotesk', system-ui, sans-serif;
+  --font-body:    'Heebo', system-ui, sans-serif;
+  --font-numbers: 'Space Grotesk', system-ui, sans-serif;
 
   /* Radius */
   --r-sm: 10px;
@@ -48,6 +49,7 @@ html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  direction: rtl;
 }
 
 body {
@@ -180,6 +182,7 @@ input {
 }
 
 .puzzle-num {
+  font-family: var(--font-numbers);
   font-size: 13px;
   color: var(--text-muted);
   font-weight: 500;
@@ -247,10 +250,10 @@ input {
 }
 
 .clue-word {
-  font-family: var(--font-display);
-  font-size: clamp(16px, 5vw, 26px);
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font-family: var(--font-body);
+  font-size: clamp(18px, 5.5vw, 28px);
+  font-weight: 800;
+  letter-spacing: 0;
   color: var(--text);
   text-align: center;
   padding: 0 8px;
@@ -340,21 +343,26 @@ input {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r);
-  padding: 18px 60px 18px 24px;
-  font-family: var(--font-display);
-  font-size: 20px;
+  /* RTL: padding-inline-end leaves room for submit button on the left */
+  padding-block: 18px;
+  padding-inline-start: 24px;
+  padding-inline-end: 60px;
+  font-family: var(--font-body);
+  font-size: 22px;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0;
   color: var(--text);
   outline: none;
+  text-align: right;
+  direction: rtl;
   transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
   caret-color: var(--gold);
 }
 
 .guess-input::placeholder {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 400;
-  letter-spacing: 0.1em;
+  letter-spacing: 0;
   color: var(--text-dim);
   font-family: var(--font-body);
 }
@@ -372,7 +380,8 @@ input {
 
 .submit-btn {
   position: absolute;
-  right: 14px;
+  /* RTL: button sits on the inline-end (left) side */
+  inset-inline-end: 14px;
   width: 36px;
   height: 36px;
   border-radius: var(--r-sm);
@@ -391,7 +400,8 @@ input {
 
 .submit-btn--active:hover {
   background: rgba(201, 160, 80, 0.2);
-  transform: translateX(2px);
+  /* In RTL, "forward" is left, so shift left */
+  transform: translateX(-2px);
 }
 
 /* Attempt dots */
@@ -491,10 +501,10 @@ input {
 }
 
 .result-clue-word {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 15px;
   font-weight: 700;
-  letter-spacing: 0.08em;
+  letter-spacing: 0;
   color: var(--text-muted);
 }
 
@@ -526,10 +536,10 @@ input {
 }
 
 .result-answer-word {
-  font-family: var(--font-display);
-  font-size: 22px;
+  font-family: var(--font-body);
+  font-size: 24px;
   font-weight: 800;
-  letter-spacing: 0.12em;
+  letter-spacing: 0;
 }
 
 .result-answer-badge--won .result-answer-word {
@@ -566,11 +576,11 @@ input {
 }
 
 .result-headline {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 28px;
   font-weight: 800;
-  letter-spacing: 0.02em;
-  line-height: 1.2;
+  letter-spacing: 0;
+  line-height: 1.3;
   margin-bottom: 6px;
 }
 
@@ -771,10 +781,10 @@ input {
 }
 
 .modal-title {
-  font-family: var(--font-display);
+  font-family: var(--font-body);
   font-size: 26px;
   font-weight: 800;
-  letter-spacing: 0.02em;
+  letter-spacing: 0;
 }
 
 .modal-subtitle {
@@ -853,10 +863,10 @@ input {
   background: var(--surface);
   border: 1px solid var(--border-hover);
   border-radius: var(--r-sm);
-  font-family: var(--font-display);
-  font-size: 14px;
+  font-family: var(--font-body);
+  font-size: 16px;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0;
 }
 
 .modal-example-answer {
@@ -871,10 +881,10 @@ input {
 }
 
 .modal-answer-reveal {
-  font-family: var(--font-display);
-  font-size: 20px;
+  font-family: var(--font-body);
+  font-size: 22px;
   font-weight: 800;
-  letter-spacing: 0.1em;
+  letter-spacing: 0;
   color: var(--gold-light);
 }
 

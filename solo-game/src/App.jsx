@@ -89,8 +89,8 @@ export default function App() {
   }, [])
 
   function handleGuess(guess) {
-    const normalizedGuess = guess.trim().toUpperCase()
-    const normalizedAnswer = puzzle.answer.toUpperCase()
+    const normalizedGuess = guess.trim()
+    const normalizedAnswer = puzzle.answer
     const isCorrect = normalizedGuess === normalizedAnswer
 
     const newAttempts = [...attempts, normalizedGuess]

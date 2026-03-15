@@ -1,71 +1,235 @@
-// SOLO — Find The One
-// Each puzzle: [clue1, clue2, clue3] → answer
-// The ANSWER word combines with each clue to form a real compound word / common phrase
-// All verified for the Israeli tech audience
+// SOLO — מצא את האחד
+// כל פאזל: [רמז1, רמז2, רמז3] → תשובה
+// התשובה + כל רמז = מילה מורכבת / צירוף נפוץ בעברית
+// כל הפאזלים מאומתים
+
 export const PUZZLES = [
-  { id: 1,  clues: ['NET',     'FIRE',     'FRAME'],    answer: 'WORK',    hint: 'what makes things run'  },
-  // network · firework · framework
-  { id: 2,  clues: ['SUN',     'MOON',     'STAR'],     answer: 'LIGHT',   hint: 'it travels at 300,000 km/s' },
-  // sunlight · moonlight · starlight
-  { id: 3,  clues: ['THUNDER', 'BRAIN',    'SNOW'],     answer: 'STORM',   hint: 'nature at full force'  },
-  // thunderstorm · brainstorm · snowstorm
-  { id: 4,  clues: ['FREE',    'SOFT',     'HARD'],     answer: 'WARE',    hint: 'you use it every day'  },
-  // freeware · software · hardware
-  { id: 5,  clues: ['BLUE',    'BLACK',    'STRAW'],    answer: 'BERRY',   hint: 'from the garden'  },
-  // blueberry · blackberry · strawberry
-  { id: 6,  clues: ['OVER',    'BROAD',    'FORE'],     answer: 'CAST',    hint: 'predicting the future'  },
-  // overcast · broadcast · forecast
-  { id: 7,  clues: ['BREAK',   'WALK',     'RUN'],      answer: 'THROUGH', hint: 'crossing a boundary'  },
-  // breakthrough · walkthrough · run-through
-  { id: 8,  clues: ['PASS',    'CODE',     'CROSS'],    answer: 'WORD',    hint: 'language at its most essential'  },
-  // password · codeword · crossword
-  { id: 9,  clues: ['OPEN',    'OUT',      'CROWD'],    answer: 'SOURCE',  hint: 'where it all comes from'  },
-  // open source · outsource · crowdsource
-  { id: 10, clues: ['BIG',     'META',     'CLOUD'],    answer: 'DATA',    hint: 'the new oil'  },
-  // big data · metadata · cloud data
-  { id: 11, clues: ['PULL',    'MERGE',    'FEATURE'],  answer: 'REQUEST', hint: 'ask and you shall receive'  },
-  // pull request · merge request · feature request
-  { id: 12, clues: ['OVER',    'TO',       'ALL'],      answer: 'NIGHT',   hint: 'when the city really wakes up'  },
-  // overnight · tonight · all-night
-  { id: 13, clues: ['WORK',    'FIRE',     'BIRTH'],    answer: 'PLACE',   hint: 'location is everything'  },
-  // workplace · fireplace · birthplace
-  { id: 14, clues: ['TRADE',   'BOOK',     'POST'],     answer: 'MARK',    hint: 'leaving your signature'  },
-  // trademark · bookmark · postmark
-  { id: 15, clues: ['MIND',    'WAR',      'VIDEO'],    answer: 'GAME',    hint: 'all in your head'  },
-  // mind game · war game · video game
-  { id: 16, clues: ['SELF',    'SCREEN',   'STRESS'],   answer: 'TEST',    hint: 'know before you ship'  },
-  // self-test · screen test · stress test
-  { id: 17, clues: ['DEAD',    'HAIR',     'GUIDE'],    answer: 'LINE',    hint: 'thin and defining'  },
-  // deadline · hairline · guideline
-  { id: 18, clues: ['LIFE',    'FREE',     'HAIR'],     answer: 'STYLE',   hint: 'how you carry yourself'  },
-  // lifestyle · freestyle · hairstyle
-  { id: 19, clues: ['HARD',    'SOFT',     'UNDER'],    answer: 'COVER',   hint: 'what lies beneath'  },
-  // hardcover · softcover · undercover
-  { id: 20, clues: ['HEAD',    'EAR',      'MICRO'],    answer: 'PHONE',   hint: 'your voice, amplified'  },
-  // headphone · earphone · microphone
-  { id: 21, clues: ['BLACK',   'CARD',     'SKATE'],    answer: 'BOARD',   hint: 'flat surfaces of power'  },
-  // blackboard · cardboard · skateboard
-  { id: 22, clues: ['BATTLE',  'AIR',      'MINE'],     answer: 'FIELD',   hint: 'terrain of consequence'  },
-  // battlefield · airfield · minefield
-  { id: 23, clues: ['DOWN',    'UP',       'WORK'],     answer: 'LOAD',    hint: 'carrying the weight'  },
-  // download · upload · workload
-  { id: 24, clues: ['NOTE',    'TEXT',     'AUDIO'],    answer: 'BOOK',    hint: 'knowledge in a form'  },
-  // notebook · textbook · audiobook
-  { id: 25, clues: ['COME',    'DRAW',     'SET'],      answer: 'BACK',    hint: 'returning to where you started'  },
-  // comeback · drawback · setback
-  { id: 26, clues: ['DIGITAL', 'SOCIAL',   'PRINT'],    answer: 'MEDIA',   hint: 'the message is the medium'  },
-  // digital media · social media · print media
-  { id: 27, clues: ['SEED',    'ANGEL',    'SERIES'],   answer: 'ROUND',   hint: 'how startups grow'  },
-  // seed round · angel round · series round
-  { id: 28, clues: ['ABOUT',   'POKER',    'STRAIGHT'], answer: 'FACE',    hint: 'what you show the world'  },
-  // about face · poker face · straight face
-  { id: 29, clues: ['SILVER',  'BIG',      'TOUCH'],    answer: 'SCREEN',  hint: 'where all eyes go'  },
-  // silver screen · big screen · touchscreen
-  { id: 30, clues: ['SUN',     'WALL',     'WILD'],     answer: 'FLOWER',  hint: 'beauty without asking'  },
-  // sunflower · wallflower · wildflower
+  {
+    id: 1,
+    clues: ['ספר', 'חולים', 'משפט'],
+    answer: 'בית',
+    hint: 'מבנה שמגדיר אותנו',
+  },
+  // בית ספר · בית חולים · בית משפט
+
+  {
+    id: 2,
+    clues: ['שנה', 'ממשלה', 'עיר'],
+    answer: 'ראש',
+    hint: 'מי שעומד בראש',
+  },
+  // ראש שנה · ראש ממשלה · ראש עיר
+
+  {
+    id: 3,
+    clues: ['רגל', 'סל', 'עף'],
+    answer: 'כדור',
+    hint: 'עגול ומתגלגל',
+  },
+  // כדורגל · כדורסל · כדורעף
+
+  {
+    id: 4,
+    clues: ['אדם', 'רצון', 'משיכה'],
+    answer: 'כוח',
+    hint: 'אי אפשר לראותו אבל מרגישים אותו',
+  },
+  // כוח אדם · כוח רצון · כוח משיכה
+
+  {
+    id: 5,
+    clues: ['שבוע', 'דרך', 'עונה'],
+    answer: 'סוף',
+    hint: 'הכי טוב לשמור לסוף',
+  },
+  // סוף שבוע · סוף דרך · סוף עונה
+
+  {
+    id: 6,
+    clues: ['מידע', 'סייבר', 'איכות'],
+    answer: 'אבטחה',
+    hint: 'מה שכולם בהייטק מדברים עליו',
+  },
+  // אבטחת מידע · אבטחת סייבר · אבטחת איכות
+
+  {
+    id: 7,
+    clues: ['מערכת', 'פרויקט', 'מוצר'],
+    answer: 'מנהל',
+    hint: 'התפקיד הנפוץ ביותר בלינקדאין',
+  },
+  // מנהל מערכת · מנהל פרויקט · מנהל מוצר
+
+  {
+    id: 8,
+    clues: ['עצם', 'תואר', 'פועל'],
+    answer: 'שם',
+    hint: 'דקדוק בסיסי',
+  },
+  // שם עצם · שם תואר · שם פועל
+
+  {
+    id: 9,
+    clues: ['הון', 'פשפשים', 'שחור'],
+    answer: 'שוק',
+    hint: 'כלכלה בכל הגדלים',
+  },
+  // שוק הון · שוק פשפשים · שוק שחור
+
+  {
+    id: 10,
+    clues: ['אשראי', 'עסקי', 'ברכה'],
+    answer: 'כרטיס',
+    hint: 'תמיד בארנק',
+  },
+  // כרטיס אשראי · כרטיס עסקי · כרטיס ברכה
+
+  {
+    id: 11,
+    clues: ['עליכם', 'בית', 'עולם'],
+    answer: 'שלום',
+    hint: 'מה שכולם רוצים',
+  },
+  // שלום עליכם · שלום בית · שלום עולם
+
+  {
+    id: 12,
+    clues: ['צוות', 'לקוח', 'משקיעים'],
+    answer: 'פגישה',
+    hint: 'חצי מהיום בחברות הייטק',
+  },
+  // פגישת צוות · פגישת לקוח · פגישת משקיעים
+
+  {
+    id: 13,
+    clues: ['כספים', 'עובדים', 'צבאי'],
+    answer: 'גיוס',
+    hint: 'ישראל מכירה את זה מכל הכיוונים',
+  },
+  // גיוס כספים · גיוס עובדים · גיוס צבאי
+
+  {
+    id: 14,
+    clues: ['עוף', 'בקר', 'חזיר'],
+    answer: 'בשר',
+    hint: 'מה שעל הגריל',
+  },
+  // בשר עוף · בשר בקר · בשר חזיר
+
+  {
+    id: 15,
+    clues: ['הולדת', 'עצמאות', 'כיפור'],
+    answer: 'יום',
+    hint: 'תאריכים שלא שוכחים',
+  },
+  // יום הולדת · יום עצמאות · יום כיפור
+
+  {
+    id: 16,
+    clues: ['רוח', 'חירום', 'עניינים'],
+    answer: 'מצב',
+    hint: 'תמיד יש עדכון',
+  },
+  // מצב רוח · מצב חירום · מצב עניינים
+
+  {
+    id: 17,
+    clues: ['הייטק', 'סטארטאפ', 'תוכנה'],
+    answer: 'חברה',
+    hint: 'מה שכולם מקימים בתל אביב',
+  },
+  // חברת הייטק · חברת סטארטאפ · חברת תוכנה
+
+  {
+    id: 18,
+    clues: ['מקור', 'גנטי', 'פתוח'],
+    answer: 'קוד',
+    hint: 'שפה שמדברת עם מכונות',
+  },
+  // קוד מקור · קוד גנטי · קוד פתוח
+
+  {
+    id: 19,
+    clues: ['משתמש', 'גרפי', 'מגע'],
+    answer: 'ממשק',
+    hint: 'בין אדם למכונה',
+  },
+  // ממשק משתמש · ממשק גרפי · ממשק מגע
+
+  {
+    id: 20,
+    clues: ['מריר', 'חלב', 'לבן'],
+    answer: 'שוקולד',
+    hint: 'הויכוח הנצחי',
+  },
+  // שוקולד מריר · שוקולד חלב · שוקולד לבן
+
+  {
+    id: 21,
+    clues: ['הסדר', 'שישי', 'כיפור'],
+    answer: 'ליל',
+    hint: 'הלילות שזוכרים',
+  },
+  // ליל הסדר · ליל שישי · ליל כיפור
+
+  {
+    id: 22,
+    clues: ['רכבת', 'דלק', 'משטרה'],
+    answer: 'תחנה',
+    hint: 'עצירה בדרך',
+  },
+  // תחנת רכבת · תחנת דלק · תחנת משטרה
+
+  {
+    id: 23,
+    clues: ['אחרון', 'בחינה', 'הגשה'],
+    answer: 'מועד',
+    hint: 'לחץ מובטח',
+  },
+  // מועד אחרון · מועד בחינה · מועד הגשה
+
+  {
+    id: 24,
+    clues: ['בטא', 'ייצור', 'ניסיון'],
+    answer: 'גרסה',
+    hint: 'תמיד יש עוד אחת אחרי',
+  },
+  // גרסת בטא · גרסת ייצור · גרסת ניסיון
+
+  {
+    id: 25,
+    clues: ['דירקטוריון', 'צוות', 'הנהלה'],
+    answer: 'ישיבה',
+    hint: 'מה שאפשר היה להיות מייל',
+  },
+  // ישיבת דירקטוריון · ישיבת צוות · ישיבת הנהלה
+
+  {
+    id: 26,
+    clues: ['פנסיה', 'השקעות', 'הון-סיכון'],
+    answer: 'קרן',
+    hint: 'כסף שעובד בשבילך',
+  },
+  // קרן פנסיה · קרן השקעות · קרן הון-סיכון
+
+  {
+    id: 27,
+    clues: ['אוצרות', 'דרכים', 'עיר'],
+    answer: 'מפה',
+    hint: 'לפני הווייז היה את זה',
+  },
+  // מפת אוצרות · מפת דרכים · מפת עיר
+
+  {
+    id: 28,
+    clues: ['פסח', 'סוכות', 'שבועות'],
+    answer: 'חג',
+    hint: 'ישראל בחגיגות',
+  },
+  // חג פסח · חג סוכות · חג שבועות
 ]
 
-// Returns today's puzzle deterministically
+// מחזיר את פאזל היום לפי תאריך — דטרמיניסטי, זהה לכולם
 export function getTodaysPuzzle() {
   const epoch = new Date('2025-01-01T00:00:00Z')
   const today = new Date()
@@ -74,7 +238,7 @@ export function getTodaysPuzzle() {
   return PUZZLES[Math.abs(diffDays) % PUZZLES.length]
 }
 
-// Returns today's date string as YYYY-MM-DD for localStorage keying
+// מפתח localStorage לפי תאריך
 export function getTodayKey() {
   return new Date().toISOString().slice(0, 10)
 }

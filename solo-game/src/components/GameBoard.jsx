@@ -12,11 +12,10 @@ export default function GameBoard({ puzzle, attempts, maxAttempts, onGuess }) {
     inputRef.current?.focus()
   }, [])
 
-  // Detect last attempt result to animate cards
   useEffect(() => {
     if (attempts.length === 0) return
     const last = attempts[attempts.length - 1]
-    const correct = last === puzzle.answer.toUpperCase()
+    const correct = last === puzzle.answer
     if (correct) {
       setCardState('correct')
     } else {
@@ -45,20 +44,16 @@ export default function GameBoard({ puzzle, attempts, maxAttempts, onGuess }) {
     setTimeout(() => setShaking(false), 500)
   }
 
-  function handleKeyDown(e) {
-    if (e.key === 'Enter') handleSubmit(e)
-  }
-
   const isLastCorrect = attempts.length > 0 &&
-    attempts[attempts.length - 1] === puzzle.answer.toUpperCase()
+    attempts[attempts.length - 1] === puzzle.answer
 
   return (
     <div className="game-board">
       <p className="board-subtitle">
-        Find the <strong>one word</strong> that connects all three
+        מצא את <strong>המילה האחת</strong> שמחברת את השלוש
       </p>
 
-      {/* Clue Cards */}
+      {/* קלפי רמז */}
       <div className={`clue-row ${cardState}`}>
         {puzzle.clues.map((word, i) => (
           <div
@@ -71,11 +66,11 @@ export default function GameBoard({ puzzle, attempts, maxAttempts, onGuess }) {
         ))}
       </div>
 
-      {/* Attempts history */}
+      {/* היסטוריית ניסיונות */}
       {attempts.length > 0 && (
         <div className="attempts-history">
           {attempts.map((a, i) => {
-            const isCorrect = a === puzzle.answer.toUpperCase()
+            const isCorrect = a === puzzle.answer
             return (
               <span key={i} className={`attempt-pill ${isCorrect ? 'attempt-pill--correct' : 'attempt-pill--wrong'}`}>
                 {a}
@@ -85,7 +80,7 @@ export default function GameBoard({ puzzle, attempts, maxAttempts, onGuess }) {
         </div>
       )}
 
-      {/* Input */}
+      {/* שדה הקלדה */}
       {!isLastCorrect && remaining > 0 && (
         <form
           className={`input-form ${shaking ? 'shake' : ''} ${lastWrong ? 'input-form--wrong' : ''}`}
@@ -97,21 +92,22 @@ export default function GameBoard({ puzzle, attempts, maxAttempts, onGuess }) {
               className="guess-input"
               type="text"
               value={input}
-              onChange={e => setInput(e.target.value.toUpperCase())}
-              onKeyDown={handleKeyDown}
-              placeholder="TYPE YOUR ANSWER"
+              onChange={e => setInput(e.target.value)}
+              placeholder="הקלד תשובה..."
               autoComplete="off"
-              autoCapitalize="characters"
+              autoCapitalize="off"
               spellCheck="false"
               maxLength={20}
+              dir="rtl"
             />
             <button
               type="submit"
               className={`submit-btn ${input.trim() ? 'submit-btn--active' : ''}`}
-              aria-label="Submit"
+              aria-label="שלח"
             >
+              {/* Arrow pointing left for RTL "submit" direction */}
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M4 10h12M11 5l5 5-5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M16 10H4M9 5l-5 5 5 5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
           </div>
@@ -127,7 +123,7 @@ export default function GameBoard({ puzzle, attempts, maxAttempts, onGuess }) {
       )}
 
       {remaining === 0 && !isLastCorrect && (
-        <p className="no-more-hint">revealing answer...</p>
+        <p className="no-more-hint">מגלה תשובה...</p>
       )}
     </div>
   )

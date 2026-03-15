@@ -2,15 +2,11 @@ import { useEffect, useRef, useState } from 'react'
 
 const MAX_ATTEMPTS = 3
 
-function getShareEmojis(attempts, answer, won) {
-  return attempts.map(a => a === answer.toUpperCase() ? '🟡' : '⬛').join('')
-}
-
 function getShareText(puzzle, attempts, won, streak) {
-  const emojis = getShareEmojis(attempts, puzzle.answer, won)
+  const emojis = attempts.map(a => a === puzzle.answer ? '🟡' : '⬛').join('')
   const tries = won ? attempts.length : 'X'
-  const streakLine = streak > 1 ? `\n✦ ${streak} day streak` : ''
-  return `SOLO — Find The One\nPuzzle #${puzzle.id} | ${tries}/${MAX_ATTEMPTS}\n\n${emojis}\n${streakLine}\nyou're the one.\nsolo.co.il`
+  const streakLine = streak > 1 ? `✦ ${streak} ימים ברצף\n` : ''
+  return `SOLO — מצא את האחד\nפאזל #${puzzle.id} | ${tries}/${MAX_ATTEMPTS}\n\n${emojis}\n${streakLine}\nyou're the one.\nsolo.co.il`
 }
 
 function spawnParticles(container) {
@@ -61,7 +57,7 @@ export default function ResultScreen({ puzzle, attempts, won, streak }) {
     }
   }
 
-  // Next puzzle countdown
+  // ספירה לאחור לפאזל הבא
   const now = new Date()
   const tomorrow = new Date(now)
   tomorrow.setDate(tomorrow.getDate() + 1)
@@ -72,14 +68,16 @@ export default function ResultScreen({ puzzle, attempts, won, streak }) {
 
   return (
     <div className={`result-screen ${visible ? 'result-screen--visible' : ''}`}>
-      {/* Particle container (absolute, behind content) */}
       <div ref={particleRef} className="particle-container" aria-hidden="true" />
 
-      {/* Answer reveal */}
+      {/* תצוגת תשובה */}
       <div className="result-clues">
         {puzzle.clues.map((word, i) => (
-          <div key={word} className={`result-card ${won ? 'result-card--won' : 'result-card--lost'}`}
-            style={{ animationDelay: `${i * 0.1}s` }}>
+          <div
+            key={word}
+            className={`result-card ${won ? 'result-card--won' : 'result-card--lost'}`}
+            style={{ animationDelay: `${i * 0.1}s` }}
+          >
             <span className="result-clue-word">{word}</span>
             <span className="result-connector">+</span>
           </div>
@@ -89,62 +87,63 @@ export default function ResultScreen({ puzzle, attempts, won, streak }) {
         </div>
       </div>
 
-      {/* Examples */}
+      {/* דוגמאות */}
       <div className="result-examples">
         {puzzle.clues.map((clue, i) => (
           <span key={i} className="result-example">
-            {clue.toLowerCase()}<strong>{puzzle.answer.toLowerCase()}</strong>
+            <strong>{puzzle.answer}</strong>{clue}
           </span>
         ))}
       </div>
 
-      {/* Message */}
+      {/* הודעה */}
       <div className="result-message">
         {won ? (
           <>
             <p className="result-headline result-headline--won">
-              {attempts.length === 1 ? 'First try. Brilliant.' :
-               attempts.length === 2 ? 'Found it.' : 'Got there.'}
+              {attempts.length === 1 ? 'ניסיון ראשון. מבריק.' :
+               attempts.length === 2 ? 'מצאת.' : 'הגעת לשם.'}
             </p>
             {streak > 1 && (
-              <p className="result-streak">✦ {streak} day streak</p>
+              <p className="result-streak">✦ {streak} ימים ברצף</p>
             )}
           </>
         ) : (
           <p className="result-headline result-headline--lost">
-            The One slipped away today.
+            האחד חמק הפעם.
           </p>
         )}
         <p className="result-tagline">you're the one.</p>
       </div>
 
-      {/* Share */}
+      {/* כפתורי פעולה */}
       <div className="result-actions">
         <button className="share-btn" onClick={handleShare}>
           {copied ? (
-            <><span>✓</span> Copied</>
+            <><span>✓</span> הועתק</>
           ) : (
-            <><ShareIcon /> Share Result</>
+            <><ShareIcon /> שתף תוצאה</>
           )}
         </button>
         <p className="next-puzzle">
-          Next puzzle in {hoursLeft}h {minsLeft}m
+          הפאזל הבא בעוד {hoursLeft}ש׳ {minsLeft}ד׳
         </p>
       </div>
 
-      {/* Attempts replay */}
+      {/* ריפליי אמוג׳י */}
       <div className="result-replay">
         {attempts.map((a, i) => (
-          <span key={i} className={`replay-emoji ${a === puzzle.answer.toUpperCase() ? 'replay-emoji--win' : ''}`}>
-            {a === puzzle.answer.toUpperCase() ? '🟡' : '⬛'}
+          <span key={i} className={`replay-emoji ${a === puzzle.answer ? 'replay-emoji--win' : ''}`}>
+            {a === puzzle.answer ? '🟡' : '⬛'}
           </span>
         ))}
-        {won && attempts.length < MAX_ATTEMPTS && Array.from({ length: MAX_ATTEMPTS - attempts.length })
-          .map((_, i) => <span key={`e${i}`} className="replay-emoji replay-emoji--empty">⬜</span>)
+        {won && attempts.length < MAX_ATTEMPTS &&
+          Array.from({ length: MAX_ATTEMPTS - attempts.length })
+            .map((_, i) => <span key={`e${i}`} className="replay-emoji replay-emoji--empty">⬜</span>)
         }
       </div>
 
-      {/* Brand footer */}
+      {/* פוטר מותג */}
       <footer className="result-footer">
         <span className="result-logo">SOLO</span>
         <span className="result-footer-sep">·</span>
