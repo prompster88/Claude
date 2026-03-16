@@ -1,10 +1,9 @@
 /* ===========================
    SOLO — Find The One
-   Design System
+   Design System v2
    =========================== */
 
 :root {
-  /* Palette */
   --bg:           #070707;
   --surface:      #111111;
   --surface-2:    #1a1a1a;
@@ -12,6 +11,7 @@
   --border-hover: rgba(255, 255, 255, 0.13);
   --gold:         #C9A050;
   --gold-light:   #E0BC70;
+  --gold-bright:  #F0D090;
   --gold-dim:     rgba(201, 160, 80, 0.12);
   --gold-glow:    rgba(201, 160, 80, 0.25);
   --text:         #F0EDE8;
@@ -20,17 +20,14 @@
   --error:        #C94444;
   --error-dim:    rgba(201, 68, 68, 0.10);
 
-  /* Typography */
   --font-display: 'Syne', system-ui, sans-serif;
   --font-body:    'Heebo', system-ui, sans-serif;
   --font-numbers: 'Space Grotesk', system-ui, sans-serif;
 
-  /* Radius */
   --r-sm: 10px;
   --r:    16px;
   --r-lg: 24px;
 
-  /* Transitions */
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in: cubic-bezier(0.4, 0, 1, 1);
 }
@@ -93,6 +90,64 @@ input {
 }
 
 /* ===========================
+   AMBIENT BACKGROUND GLOW
+   =========================== */
+
+.ambient-glow {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  transition: background 1.2s ease, opacity 1.2s ease;
+  will-change: background;
+}
+
+.ambient-glow--idle {
+  background: radial-gradient(
+    ellipse 100% 70% at 50% 5%,
+    rgba(201, 160, 80, 0.05) 0%,
+    transparent 65%
+  );
+  animation: ambient-breathe 6s ease-in-out infinite alternate;
+}
+
+.ambient-glow--wrong {
+  background: radial-gradient(
+    ellipse 100% 70% at 50% 5%,
+    rgba(201, 68, 68, 0.13) 0%,
+    transparent 60%
+  );
+}
+
+.ambient-glow--correct {
+  background: radial-gradient(
+    ellipse 100% 70% at 50% 5%,
+    rgba(201, 160, 80, 0.22) 0%,
+    transparent 55%
+  );
+}
+
+@keyframes ambient-breathe {
+  from { opacity: 0.5; }
+  to   { opacity: 1; }
+}
+
+/* Screen flash on wrong */
+.screen-flash {
+  position: fixed;
+  inset: 0;
+  background: rgba(201, 68, 68, 0.07);
+  z-index: 50;
+  pointer-events: none;
+  animation: flash-out 0.4s ease forwards;
+}
+
+@keyframes flash-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+/* ===========================
    HEADER
    =========================== */
 
@@ -130,7 +185,6 @@ input {
   background: var(--surface-2);
 }
 
-/* Logo */
 .logo-wrap {
   display: flex;
   align-items: center;
@@ -152,6 +206,12 @@ input {
   border-radius: 50%;
   background: var(--gold);
   margin-top: 1px;
+  animation: dot-pulse 3s ease-in-out infinite;
+}
+
+@keyframes dot-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(201, 160, 80, 0); }
+  50%       { box-shadow: 0 0 0 4px rgba(201, 160, 80, 0.15); }
 }
 
 .header-right {
@@ -199,6 +259,7 @@ input {
   flex-direction: column;
   align-items: center;
   gap: 32px;
+  position: relative;
 }
 
 .board-subtitle {
@@ -235,18 +296,24 @@ input {
   border: 1px solid var(--border);
   border-radius: var(--r);
   cursor: default;
-  animation: card-enter 0.5s var(--ease) both;
-  transition: border-color 0.3s, background 0.3s, box-shadow 0.3s, transform 0.3s;
+  animation: card-enter 0.55s var(--ease) both;
+  transition: border-color 0.35s, background 0.35s, box-shadow 0.35s, transform 0.35s;
   position: relative;
   overflow: hidden;
 }
 
-.clue-card::before {
-  content: '';
+/* Shine overlay */
+.clue-shine {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.03) 0%, transparent 70%);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.01) 45%,
+    transparent 65%
+  );
   pointer-events: none;
+  border-radius: inherit;
 }
 
 .clue-word {
@@ -257,29 +324,41 @@ input {
   color: var(--text);
   text-align: center;
   padding: 0 8px;
+  position: relative;
+  z-index: 1;
 }
 
 /* Card state: wrong */
 .clue-row.wrong .clue-card {
-  border-color: rgba(201, 68, 68, 0.35);
-  background: rgba(201, 68, 68, 0.05);
+  border-color: rgba(201, 68, 68, 0.4);
+  background: rgba(201, 68, 68, 0.06);
   animation: card-shake 0.5s var(--ease);
 }
 
 /* Card state: correct */
 .clue-row.correct .clue-card {
-  border-color: rgba(201, 160, 80, 0.55);
-  background: rgba(201, 160, 80, 0.06);
-  box-shadow: 0 0 24px rgba(201, 160, 80, 0.12), inset 0 1px 0 rgba(201, 160, 80, 0.15);
-  animation: card-win 0.5s var(--ease) both;
+  border-color: rgba(201, 160, 80, 0.6);
+  background: rgba(201, 160, 80, 0.07);
+  box-shadow: 0 0 30px rgba(201, 160, 80, 0.15), inset 0 1px 0 rgba(201, 160, 80, 0.2);
+  animation: card-win 0.55s var(--ease) both;
 }
 
 .clue-row.correct .clue-card--0 { animation-delay: 0s; }
-.clue-row.correct .clue-card--1 { animation-delay: 0.08s; }
-.clue-row.correct .clue-card--2 { animation-delay: 0.16s; }
+.clue-row.correct .clue-card--1 { animation-delay: 0.09s; }
+.clue-row.correct .clue-card--2 { animation-delay: 0.18s; }
 
 .clue-row.correct .clue-word {
   color: var(--gold-light);
+}
+
+/* Tension: cards warn visually as attempts are used */
+.tension-1 .clue-card {
+  border-color: rgba(201, 68, 68, 0.1);
+}
+
+.tension-2 .clue-card {
+  border-color: rgba(201, 68, 68, 0.22);
+  box-shadow: inset 0 0 24px rgba(201, 68, 68, 0.04);
 }
 
 /* ===========================
@@ -343,14 +422,12 @@ input {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r);
-  /* RTL: padding-inline-end leaves room for submit button on the left */
   padding-block: 18px;
   padding-inline-start: 24px;
   padding-inline-end: 60px;
   font-family: var(--font-body);
   font-size: 22px;
   font-weight: 700;
-  letter-spacing: 0;
   color: var(--text);
   outline: none;
   text-align: right;
@@ -362,15 +439,14 @@ input {
 .guess-input::placeholder {
   font-size: 14px;
   font-weight: 400;
-  letter-spacing: 0;
   color: var(--text-dim);
   font-family: var(--font-body);
 }
 
 .guess-input:focus {
-  border-color: var(--border-hover);
+  border-color: rgba(201, 160, 80, 0.3);
   background: var(--surface-2);
-  box-shadow: 0 0 0 3px rgba(255,255,255,0.03);
+  box-shadow: 0 0 0 3px rgba(201, 160, 80, 0.06), 0 0 20px rgba(201, 160, 80, 0.05);
 }
 
 .input-form--wrong .guess-input {
@@ -380,7 +456,6 @@ input {
 
 .submit-btn {
   position: absolute;
-  /* RTL: button sits on the inline-end (left) side */
   inset-inline-end: 14px;
   width: 36px;
   height: 36px;
@@ -400,7 +475,6 @@ input {
 
 .submit-btn--active:hover {
   background: rgba(201, 160, 80, 0.2);
-  /* In RTL, "forward" is left, so shift left */
   transform: translateX(-2px);
 }
 
@@ -424,7 +498,8 @@ input {
 
 .attempt-dot--just-used {
   background: var(--error);
-  transform: scale(1.3);
+  transform: scale(1.4);
+  box-shadow: 0 0 8px rgba(201, 68, 68, 0.5);
 }
 
 .no-more-hint {
@@ -439,13 +514,13 @@ input {
    =========================== */
 
 .result-screen {
-  padding-top: 36px;
+  padding-top: 32px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 28px;
+  gap: 24px;
   opacity: 0;
-  transform: translateY(12px);
+  transform: translateY(14px);
   transition: opacity 0.5s var(--ease), transform 0.5s var(--ease);
   position: relative;
 }
@@ -464,14 +539,110 @@ input {
   overflow: hidden;
 }
 
-.particle {
-  position: absolute;
-  top: 40%;
-  border-radius: 50%;
-  animation: particle-fly linear both;
+/* ===========================
+   RATING BADGE
+   =========================== */
+
+.rating-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 28px 52px;
+  border-radius: var(--r-lg);
+  animation: rating-enter 0.65s var(--ease) 0.05s both;
+  width: 100%;
+  max-width: 340px;
+  position: relative;
+  overflow: hidden;
+  text-align: center;
 }
 
-/* Result clue display */
+.rating-badge--genius {
+  background: linear-gradient(
+    160deg,
+    rgba(201, 160, 80, 0.18) 0%,
+    rgba(240, 208, 144, 0.06) 100%
+  );
+  border: 1px solid rgba(201, 160, 80, 0.4);
+  box-shadow:
+    0 0 60px rgba(201, 160, 80, 0.15),
+    0 0 120px rgba(201, 160, 80, 0.06),
+    inset 0 1px 0 rgba(201, 160, 80, 0.3);
+}
+
+.rating-badge--genius::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(201, 160, 80, 0.18) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.rating-badge--sharp {
+  background: rgba(201, 160, 80, 0.08);
+  border: 1px solid rgba(201, 160, 80, 0.22);
+  box-shadow: 0 0 30px rgba(201, 160, 80, 0.08);
+}
+
+.rating-badge--got-it {
+  background: var(--surface-2);
+  border: 1px solid var(--border-hover);
+}
+
+.rating-badge--lost {
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.rating-emoji {
+  font-size: 44px;
+  line-height: 1;
+  animation: rating-emoji-pop 0.55s var(--ease) 0.3s both;
+  display: block;
+}
+
+.rating-label {
+  font-family: var(--font-body);
+  font-size: 40px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  position: relative;
+  line-height: 1.1;
+}
+
+.rating-badge--genius .rating-label {
+  color: var(--gold-light);
+}
+
+.rating-badge--lost .rating-label {
+  color: var(--text-muted);
+}
+
+.rating-sublabel {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  margin-top: 2px;
+}
+
+@keyframes rating-enter {
+  from { opacity: 0; transform: scale(0.72) translateY(20px); }
+  65%  { transform: scale(1.04) translateY(-4px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes rating-emoji-pop {
+  from { transform: scale(0) rotate(-30deg); opacity: 0; }
+  60%  { transform: scale(1.3) rotate(8deg); opacity: 1; }
+  to   { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+/* ===========================
+   RESULT CLUES
+   =========================== */
+
 .result-clues {
   display: flex;
   align-items: center;
@@ -484,7 +655,7 @@ input {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 12px 16px;
+  padding: 10px 14px;
   border-radius: var(--r-sm);
   animation: fade-up 0.4s var(--ease) both;
   border: 1px solid var(--border);
@@ -502,9 +673,8 @@ input {
 
 .result-clue-word {
   font-family: var(--font-body);
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
-  letter-spacing: 0;
   color: var(--text-muted);
 }
 
@@ -519,15 +689,15 @@ input {
 }
 
 .result-answer-badge {
-  padding: 14px 22px;
+  padding: 12px 20px;
   border-radius: var(--r-sm);
-  animation: answer-reveal 0.5s var(--ease) 0.3s both;
+  animation: answer-reveal 0.55s var(--ease) 0.35s both;
 }
 
 .result-answer-badge--won {
   background: var(--gold-dim);
-  border: 1px solid rgba(201, 160, 80, 0.4);
-  box-shadow: 0 0 30px var(--gold-glow);
+  border: 1px solid rgba(201, 160, 80, 0.45);
+  box-shadow: 0 0 36px var(--gold-glow);
 }
 
 .result-answer-badge--lost {
@@ -537,9 +707,8 @@ input {
 
 .result-answer-word {
   font-family: var(--font-body);
-  font-size: 24px;
+  font-size: 22px;
   font-weight: 800;
-  letter-spacing: 0;
 }
 
 .result-answer-badge--won .result-answer-word {
@@ -556,7 +725,7 @@ input {
   gap: 14px;
   flex-wrap: wrap;
   justify-content: center;
-  animation: fade-up 0.4s var(--ease) 0.4s both;
+  animation: fade-up 0.4s var(--ease) 0.45s both;
 }
 
 .result-example {
@@ -569,49 +738,49 @@ input {
   color: var(--text);
 }
 
-/* Message */
-.result-message {
-  text-align: center;
+/* ===========================
+   EMOJI GRID
+   =========================== */
+
+.result-replay {
+  display: flex;
+  gap: 6px;
   animation: fade-up 0.4s var(--ease) 0.5s both;
 }
 
-.result-headline {
-  font-family: var(--font-body);
-  font-size: 28px;
-  font-weight: 800;
-  letter-spacing: 0;
-  line-height: 1.3;
-  margin-bottom: 6px;
+.replay-emoji {
+  font-size: 22px;
+  line-height: 1;
+  transition: transform 0.2s;
 }
 
-.result-headline--won {
-  color: var(--text);
+.replay-emoji--win {
+  animation: replay-win-pop 0.4s var(--ease) 0.6s both;
 }
 
-.result-headline--lost {
-  color: var(--text-muted);
+@keyframes replay-win-pop {
+  0%   { transform: scale(0.8); }
+  60%  { transform: scale(1.25); }
+  100% { transform: scale(1); }
 }
 
+/* Streak */
 .result-streak {
   font-size: 13px;
   color: var(--gold);
   letter-spacing: 0.06em;
-  margin-bottom: 10px;
+  animation: fade-up 0.4s var(--ease) 0.55s both;
 }
 
-.result-tagline {
-  font-size: 13px;
-  color: var(--text-dim);
-  letter-spacing: 0.08em;
-  font-style: italic;
-}
+/* ===========================
+   ACTIONS + COUNTDOWN
+   =========================== */
 
-/* Actions */
 .result-actions {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   width: 100%;
   animation: fade-up 0.4s var(--ease) 0.6s both;
 }
@@ -625,46 +794,77 @@ input {
   font-size: 14px;
   font-weight: 700;
   letter-spacing: 0.06em;
-  padding: 14px 32px;
+  padding: 15px 36px;
   border-radius: var(--r);
   transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
   box-shadow: 0 4px 20px rgba(201, 160, 80, 0.3);
+  width: 100%;
+  justify-content: center;
 }
 
 .share-btn:hover {
   background: var(--gold-light);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 28px rgba(201, 160, 80, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(201, 160, 80, 0.45);
 }
 
 .share-btn:active {
   transform: translateY(0);
 }
 
-.next-puzzle {
-  font-size: 12px;
-  color: var(--text-muted);
-  letter-spacing: 0.04em;
+/* Win state: pulsing share button */
+.share-btn--won {
+  animation: share-pulse 2.8s ease-in-out 1.8s infinite;
 }
 
-/* Replay emojis */
-.result-replay {
+@keyframes share-pulse {
+  0%, 100% {
+    box-shadow: 0 4px 20px rgba(201, 160, 80, 0.3);
+  }
+  50% {
+    box-shadow: 0 4px 40px rgba(201, 160, 80, 0.65),
+                0 0 0 6px rgba(201, 160, 80, 0.08);
+  }
+}
+
+/* Live countdown */
+.countdown-wrap {
+  text-align: center;
   display: flex;
-  gap: 6px;
-  animation: fade-up 0.4s var(--ease) 0.7s both;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
 }
 
-.replay-emoji {
-  font-size: 20px;
-  line-height: 1;
+.countdown-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-dim);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
-/* Footer */
+.countdown-time {
+  font-family: var(--font-numbers);
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+}
+
+.countdown-time span {
+  color: var(--text);
+}
+
+/* ===========================
+   RESULT FOOTER
+   =========================== */
+
 .result-footer {
   display: flex;
   align-items: center;
   gap: 8px;
-  animation: fade-up 0.4s var(--ease) 0.8s both;
+  animation: fade-up 0.4s var(--ease) 0.75s both;
 }
 
 .result-logo {
@@ -680,10 +880,76 @@ input {
   font-size: 12px;
 }
 
+.result-tagline {
+  font-size: 12px;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+  font-style: italic;
+}
+
 .result-footer-link {
   font-size: 12px;
   color: var(--text-muted);
   letter-spacing: 0.04em;
+}
+
+/* ===========================
+   PARTICLES
+   =========================== */
+
+.particle-container {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0;
+  animation: particle-fly linear both;
+}
+
+.particle--star {
+  position: absolute;
+  opacity: 0;
+  animation: particle-star-fly linear both;
+  line-height: 1;
+  pointer-events: none;
+}
+
+@keyframes particle-fly {
+  0% {
+    opacity: 1;
+    transform: translateY(0) translateX(0) rotate(0deg);
+  }
+  100% {
+    opacity: 0;
+    transform:
+      translateY(calc(var(--rise, 200px) * -1))
+      translateX(var(--drift, 40px))
+      rotate(400deg);
+  }
+}
+
+@keyframes particle-star-fly {
+  0% {
+    opacity: 1;
+    transform: translateY(0) translateX(0) rotate(0deg) scale(1);
+  }
+  25% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform:
+      translateY(calc(var(--rise, 200px) * -1))
+      translateX(var(--drift, 40px))
+      rotate(540deg)
+      scale(0.1);
+  }
 }
 
 /* ===========================
@@ -784,7 +1050,6 @@ input {
   font-family: var(--font-body);
   font-size: 26px;
   font-weight: 800;
-  letter-spacing: 0;
 }
 
 .modal-subtitle {
@@ -833,7 +1098,6 @@ input {
   line-height: 1.5;
 }
 
-/* Example */
 .modal-example {
   background: var(--surface-2);
   border: 1px solid var(--border);
@@ -866,7 +1130,6 @@ input {
   font-family: var(--font-body);
   font-size: 16px;
   font-weight: 700;
-  letter-spacing: 0;
 }
 
 .modal-example-answer {
@@ -884,7 +1147,6 @@ input {
   font-family: var(--font-body);
   font-size: 22px;
   font-weight: 800;
-  letter-spacing: 0;
   color: var(--gold-light);
 }
 
@@ -930,13 +1192,13 @@ input {
 }
 
 /* ===========================
-   ANIMATIONS
+   KEYFRAME ANIMATIONS
    =========================== */
 
 @keyframes card-enter {
   from {
     opacity: 0;
-    transform: translateY(16px) scale(0.97);
+    transform: translateY(20px) scale(0.95);
   }
   to {
     opacity: 1;
@@ -946,17 +1208,17 @@ input {
 
 @keyframes card-shake {
   0%, 100% { transform: translateX(0) rotate(0deg); }
-  15%       { transform: translateX(-6px) rotate(-0.5deg); }
-  30%       { transform: translateX(6px) rotate(0.5deg); }
-  45%       { transform: translateX(-4px) rotate(0deg); }
-  60%       { transform: translateX(4px) rotate(0deg); }
+  15%       { transform: translateX(-7px) rotate(-0.6deg); }
+  30%       { transform: translateX(7px) rotate(0.6deg); }
+  45%       { transform: translateX(-5px) rotate(0deg); }
+  60%       { transform: translateX(5px) rotate(0deg); }
   75%       { transform: translateX(-2px); }
 }
 
 @keyframes card-win {
   0%   { transform: scale(1); }
-  40%  { transform: scale(1.04); }
-  70%  { transform: scale(0.98); }
+  35%  { transform: scale(1.06); }
+  65%  { transform: scale(0.97); }
   100% { transform: scale(1); }
 }
 
@@ -969,7 +1231,7 @@ input {
 @keyframes fade-up {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(12px);
   }
   to {
     opacity: 1;
@@ -978,28 +1240,10 @@ input {
 }
 
 @keyframes answer-reveal {
-  0%   { opacity: 0; transform: scale(0.85); }
-  60%  { transform: scale(1.06); }
+  0%   { opacity: 0; transform: scale(0.8); }
+  55%  { transform: scale(1.08); }
   100% { opacity: 1; transform: scale(1); }
 }
-
-@keyframes particle-fly {
-  0% {
-    opacity: 1;
-    transform: translateY(0) translateX(0) rotate(0deg);
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(-280px) translateX(var(--drift, 40px)) rotate(360deg);
-  }
-}
-
-/* Randomize particle drift */
-.particle:nth-child(odd)  { --drift: -50px; }
-.particle:nth-child(even) { --drift:  50px; }
-.particle:nth-child(3n)   { --drift:  20px; }
-.particle:nth-child(5n)   { --drift: -30px; }
-.particle:nth-child(7n)   { --drift:  70px; }
 
 /* ===========================
    UTILITIES
@@ -1012,7 +1256,6 @@ input {
   }
 }
 
-/* Safe area support for notch phones */
 @supports (padding-bottom: env(safe-area-inset-bottom)) {
   .app {
     padding-bottom: calc(40px + env(safe-area-inset-bottom));
