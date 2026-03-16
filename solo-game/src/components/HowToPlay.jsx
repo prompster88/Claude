@@ -26,35 +26,34 @@ export default function HowToPlay({ onClose }) {
         </div>
 
         <h2 className="modal-title">מצא את האחד</h2>
-        <p className="modal-subtitle">שלוש מילים. חיבור אחד נסתר.</p>
+        <p className="modal-subtitle">שלוש מילים. חיבור אחד נסתר. אין גבול.</p>
 
         <div className="modal-steps">
           <div className="modal-step">
             <div className="modal-step-num">1</div>
             <div className="modal-step-body">
-              <strong>קרא את שלוש מילות הרמז</strong>
-              <p>כל מילה מתחברת עם מילה נסתרת אחת ליצירת מילה מורכבת או צירוף.</p>
+              <strong>מצא את המילה המחברת</strong>
+              <p>כל מילה מתחברת עם מילה נסתרת אחת ליצירת צירוף. יש לך 3 ניסיונות לפאזל.</p>
             </div>
           </div>
 
           <div className="modal-step">
             <div className="modal-step-num">2</div>
             <div className="modal-step-body">
-              <strong>הקלד את מילת הקשר</strong>
-              <p>יש לך שלושה ניסיונות. חשוב לרוחב — הקשר עשוי להפתיע.</p>
+              <strong>❤️❤️❤️ שמור על 3 חיים</strong>
+              <p>כל פאזל שנכשלת בו עולה חיים אחד. המשחק נגמר כשאוזלים החיים.</p>
             </div>
           </div>
 
           <div className="modal-step">
             <div className="modal-step-num">3</div>
             <div className="modal-step-body">
-              <strong>שתף את התוצאה</strong>
-              <p>פאזל חדש כל יום. בנה רצף ותגלה עד כמה אתה חד.</p>
+              <strong>🔥 בנה רצף לניקוד מטורף</strong>
+              <p>3 ברצף = ×1.5 | 5 ברצף = ×2 | 10 ברצף = ×3. ניסיון ראשון = 300 נקודות.</p>
             </div>
           </div>
         </div>
 
-        {/* דוגמה */}
         <div className="modal-example">
           <p className="modal-example-label">דוגמה</p>
           <div className="modal-example-cards">

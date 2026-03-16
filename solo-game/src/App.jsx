@@ -1,152 +1,194 @@
-import { useState, useEffect } from 'react'
-import { getTodaysPuzzle, getTodayKey } from './data/puzzles'
+import { useState, useCallback } from 'react'
+import { shufflePuzzles } from './data/puzzles'
 import Header from './components/Header'
+import GameStatus from './components/GameStatus'
 import GameBoard from './components/GameBoard'
-import ResultScreen from './components/ResultScreen'
+import StartScreen from './components/StartScreen'
+import BetweenScreen from './components/BetweenScreen'
+import GameOverScreen from './components/GameOverScreen'
 import HowToPlay from './components/HowToPlay'
 
+const MAX_LIVES = 3
 const MAX_ATTEMPTS = 3
 
-function loadState() {
-  try {
-    const key = getTodayKey()
-    const raw = localStorage.getItem(`solo_${key}`)
-    return raw ? JSON.parse(raw) : null
-  } catch {
-    return null
-  }
+function getPoints(attemptCount) {
+  if (attemptCount === 1) return 300
+  if (attemptCount === 2) return 150
+  return 75
 }
 
-function saveState(state) {
-  try {
-    const key = getTodayKey()
-    localStorage.setItem(`solo_${key}`, JSON.stringify(state))
-  } catch {}
+function getMultiplier(streak) {
+  if (streak >= 10) return 3
+  if (streak >= 5) return 2
+  if (streak >= 3) return 1.5
+  return 1
 }
 
-function loadStreak() {
-  try {
-    return parseInt(localStorage.getItem('solo_streak') || '0', 10)
-  } catch {
-    return 0
-  }
+function loadHighScore() {
+  try { return parseInt(localStorage.getItem('solo_hs') || '0', 10) } catch { return 0 }
 }
 
-function updateStreak(won) {
-  try {
-    const lastWinDate = localStorage.getItem('solo_last_win')
-    const today = getTodayKey()
-    const yesterday = new Date()
-    yesterday.setDate(yesterday.getDate() - 1)
-    const yKey = yesterday.toISOString().slice(0, 10)
-
-    if (!won) {
-      localStorage.setItem('solo_streak', '0')
-      return 0
-    }
-
-    if (lastWinDate === today) {
-      return loadStreak()
-    }
-
-    let streak = loadStreak()
-    if (lastWinDate === yKey) {
-      streak += 1
-    } else {
-      streak = 1
-    }
-    localStorage.setItem('solo_streak', String(streak))
-    localStorage.setItem('solo_last_win', today)
-    return streak
-  } catch {
-    return 0
-  }
+function saveHighScore(score) {
+  try { localStorage.setItem('solo_hs', String(score)) } catch {}
 }
 
 export default function App() {
-  const puzzle = getTodaysPuzzle()
-  const [phase, setPhase] = useState('loading') // loading | tutorial | playing | won | lost
-  const [attempts, setAttempts] = useState([]) // array of guessed strings
-  const [streak, setStreak] = useState(loadStreak())
+  const [phase, setPhase] = useState('start') // start | playing | between | gameover
+  const [puzzleQueue, setPuzzleQueue] = useState([])
+  const [puzzleIndex, setPuzzleIndex] = useState(0)
+  const [attempts, setAttempts] = useState([])
+  const [score, setScore] = useState(0)
+  const [lives, setLives] = useState(MAX_LIVES)
+  const [streak, setStreak] = useState(0)
+  const [maxStreak, setMaxStreak] = useState(0)
+  const [solved, setSolved] = useState(0)
+  const [highScore, setHighScore] = useState(loadHighScore)
+  const [betweenData, setBetweenData] = useState(null)
   const [showTutorial, setShowTutorial] = useState(false)
+  const [isNewHighScore, setIsNewHighScore] = useState(false)
 
-  useEffect(() => {
-    const saved = loadState()
-    if (saved) {
-      setAttempts(saved.attempts || [])
-      if (saved.result === 'won') setPhase('won')
-      else if (saved.result === 'lost') setPhase('lost')
-      else setPhase('playing')
-    } else {
-      const hasPlayed = localStorage.getItem('solo_has_played')
-      if (!hasPlayed) {
-        setPhase('tutorial')
-      } else {
-        setPhase('playing')
-      }
-    }
-    setStreak(loadStreak())
-  }, [])
+  function startGame() {
+    const queue = shufflePuzzles()
+    setPuzzleQueue(queue)
+    setPuzzleIndex(0)
+    setAttempts([])
+    setScore(0)
+    setLives(MAX_LIVES)
+    setStreak(0)
+    setMaxStreak(0)
+    setSolved(0)
+    setIsNewHighScore(false)
+    setPhase('playing')
+  }
 
-  function handleGuess(guess) {
-    const normalizedGuess = guess.trim()
-    const normalizedAnswer = puzzle.answer
-    const isCorrect = normalizedGuess === normalizedAnswer
+  const currentPuzzle = puzzleQueue[puzzleIndex]
 
-    const newAttempts = [...attempts, normalizedGuess]
+  const handleGuess = useCallback((guess) => {
+    const isCorrect = guess.trim() === currentPuzzle.answer
+    const newAttempts = [...attempts, guess.trim()]
     setAttempts(newAttempts)
 
     if (isCorrect) {
-      const newStreak = updateStreak(true)
+      const newStreak = streak + 1
+      const mult = getMultiplier(newStreak)
+      const pts = Math.round(getPoints(newAttempts.length) * mult)
+      const newScore = score + pts
+      const newMax = Math.max(maxStreak, newStreak)
+
       setStreak(newStreak)
-      saveState({ attempts: newAttempts, result: 'won' })
-      setTimeout(() => setPhase('won'), 600)
+      setMaxStreak(newMax)
+      setScore(newScore)
+      setSolved(s => s + 1)
+
+      setBetweenData({
+        won: true,
+        points: pts,
+        multiplier: mult,
+        streak: newStreak,
+        newScore,
+        lives,
+        answer: currentPuzzle.answer,
+        clues: currentPuzzle.clues,
+      })
+      setTimeout(() => setPhase('between'), 650)
+
     } else if (newAttempts.length >= MAX_ATTEMPTS) {
-      updateStreak(false)
-      saveState({ attempts: newAttempts, result: 'lost' })
-      setTimeout(() => setPhase('lost'), 600)
-    } else {
-      saveState({ attempts: newAttempts, result: 'playing' })
+      const newLives = lives - 1
+      setLives(newLives)
+      setStreak(0)
+
+      if (newLives <= 0) {
+        // Game over
+        const isNew = score > highScore
+        if (isNew) {
+          saveHighScore(score)
+          setHighScore(score)
+          setIsNewHighScore(true)
+        }
+        setTimeout(() => setPhase('gameover'), 1200)
+      } else {
+        setBetweenData({
+          won: false,
+          points: 0,
+          multiplier: 1,
+          streak: 0,
+          newScore: score,
+          lives: newLives,
+          answer: currentPuzzle.answer,
+          clues: currentPuzzle.clues,
+        })
+        setTimeout(() => setPhase('between'), 700)
+      }
     }
-  }
+  }, [attempts, currentPuzzle, streak, score, maxStreak, lives, highScore])
 
-  function handleTutorialClose() {
-    localStorage.setItem('solo_has_played', '1')
+  function handleBetweenContinue() {
+    const nextIndex = (puzzleIndex + 1) % puzzleQueue.length
+    // If we've gone through all puzzles, reshuffle
+    if (nextIndex === 0) {
+      setPuzzleQueue(shufflePuzzles())
+    }
+    setPuzzleIndex(nextIndex)
+    setAttempts([])
     setPhase('playing')
-    setShowTutorial(false)
   }
 
-  if (phase === 'loading') return null
+  const isPlaying = phase === 'playing' || phase === 'between'
 
   return (
     <div className="app">
       <div className="app-inner">
-        <Header
-          puzzleId={puzzle.id}
-          streak={streak}
-          onHelp={() => setShowTutorial(true)}
-        />
 
-        {(phase === 'playing') && (
+        {isPlaying && (
+          <Header onHelp={() => setShowTutorial(true)} />
+        )}
+
+        {isPlaying && (
+          <GameStatus
+            score={score}
+            lives={lives}
+            maxLives={MAX_LIVES}
+            streak={streak}
+          />
+        )}
+
+        {phase === 'start' && (
+          <StartScreen
+            highScore={highScore}
+            onPlay={startGame}
+            onHelp={() => setShowTutorial(true)}
+          />
+        )}
+
+        {phase === 'playing' && currentPuzzle && (
           <GameBoard
-            puzzle={puzzle}
+            puzzle={currentPuzzle}
             attempts={attempts}
             maxAttempts={MAX_ATTEMPTS}
             onGuess={handleGuess}
           />
         )}
 
-        {(phase === 'won' || phase === 'lost') && (
-          <ResultScreen
-            puzzle={puzzle}
-            attempts={attempts}
-            won={phase === 'won'}
-            streak={streak}
+        {phase === 'between' && betweenData && (
+          <BetweenScreen
+            data={betweenData}
+            onContinue={handleBetweenContinue}
           />
         )}
 
-        {(phase === 'tutorial' || showTutorial) && (
-          <HowToPlay onClose={handleTutorialClose} />
+        {phase === 'gameover' && (
+          <GameOverScreen
+            score={score}
+            highScore={highScore}
+            maxStreak={maxStreak}
+            solved={solved}
+            isNewHighScore={isNewHighScore}
+            onPlayAgain={startGame}
+          />
+        )}
+
+        {showTutorial && (
+          <HowToPlay onClose={() => setShowTutorial(false)} />
         )}
       </div>
     </div>

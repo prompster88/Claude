@@ -4,17 +4,20 @@ export default function GameBoard({ puzzle, attempts, maxAttempts, onGuess }) {
   const [input, setInput] = useState('')
   const [shaking, setShaking] = useState(false)
   const [lastWrong, setLastWrong] = useState(false)
-  const [cardState, setCardState] = useState('idle') // idle | wrong | correct
+  const [cardState, setCardState] = useState('idle')
   const [flashWrong, setFlashWrong] = useState(false)
   const inputRef = useRef(null)
   const remaining = maxAttempts - attempts.length
 
   useEffect(() => {
     inputRef.current?.focus()
-  }, [])
+  }, [puzzle.id])
 
   useEffect(() => {
-    if (attempts.length === 0) return
+    if (attempts.length === 0) {
+      setCardState('idle')
+      return
+    }
     const last = attempts[attempts.length - 1]
     const correct = last === puzzle.answer
     if (correct) {
@@ -23,10 +26,7 @@ export default function GameBoard({ puzzle, attempts, maxAttempts, onGuess }) {
       setCardState('wrong')
       setLastWrong(true)
       setFlashWrong(true)
-      setTimeout(() => {
-        setCardState('idle')
-        setLastWrong(false)
-      }, 700)
+      setTimeout(() => { setCardState('idle'); setLastWrong(false) }, 700)
       setTimeout(() => setFlashWrong(false), 400)
     }
   }, [attempts])
@@ -34,10 +34,7 @@ export default function GameBoard({ puzzle, attempts, maxAttempts, onGuess }) {
   function handleSubmit(e) {
     e.preventDefault()
     const val = input.trim()
-    if (!val) {
-      triggerShake()
-      return
-    }
+    if (!val) { triggerShake(); return }
     onGuess(val)
     setInput('')
   }
@@ -53,17 +50,13 @@ export default function GameBoard({ puzzle, attempts, maxAttempts, onGuess }) {
 
   return (
     <div className="game-board">
-      {/* Ambient background glow */}
       <div className={`ambient-glow ambient-glow--${cardState}`} aria-hidden="true" />
-
-      {/* Red flash on wrong */}
       {flashWrong && <div className="screen-flash" aria-hidden="true" />}
 
       <p className="board-subtitle">
         מצא את <strong>המילה האחת</strong> שמחברת את השלוש
       </p>
 
-      {/* Clue cards */}
       <div className={`clue-row ${cardState} tension-${tensionLevel}`}>
         {puzzle.clues.map((word, i) => (
           <div
@@ -77,21 +70,16 @@ export default function GameBoard({ puzzle, attempts, maxAttempts, onGuess }) {
         ))}
       </div>
 
-      {/* Attempt history */}
       {attempts.length > 0 && (
         <div className="attempts-history">
-          {attempts.map((a, i) => {
-            const isCorrect = a === puzzle.answer
-            return (
-              <span key={i} className={`attempt-pill ${isCorrect ? 'attempt-pill--correct' : 'attempt-pill--wrong'}`}>
-                {a}
-              </span>
-            )
-          })}
+          {attempts.map((a, i) => (
+            <span key={i} className={`attempt-pill ${a === puzzle.answer ? 'attempt-pill--correct' : 'attempt-pill--wrong'}`}>
+              {a}
+            </span>
+          ))}
         </div>
       )}
 
-      {/* Input */}
       {!isLastCorrect && remaining > 0 && (
         <form
           className={`input-form ${shaking ? 'shake' : ''} ${lastWrong ? 'input-form--wrong' : ''}`}

@@ -1,4 +1,4 @@
-export default function Header({ puzzleId, streak, onHelp }) {
+export default function Header({ onHelp }) {
   return (
     <header className="header">
       <button className="header-help" onClick={onHelp} aria-label="How to play">
@@ -13,15 +13,7 @@ export default function Header({ puzzleId, streak, onHelp }) {
         <span className="logo-dot" />
       </div>
 
-      <div className="header-right">
-        {streak > 1 && (
-          <span className="streak-badge">
-            <span className="streak-fire">✦</span>
-            <span className="streak-num">{streak}</span>
-          </span>
-        )}
-        <span className="puzzle-num">#{puzzleId}</span>
-      </div>
+      <div style={{ width: 36 }} />
     </header>
   )
 }
