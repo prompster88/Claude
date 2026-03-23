@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <style>
+      .pizza-group {
+        transform-origin: 200px 200px;
+        animation: rotate 6s linear infinite;
+      }
+      @keyframes rotate {
+        from { transform: rotate(0deg); }
+        to   { transform: rotate(360deg); }
+      }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="400" height="400" fill="#1a1a2e"/>
+
+  <!-- Rotating pizza group -->
+  <g class="pizza-group">
+
+    <!-- === CRUST (outer ring, low poly) === -->
+    <polygon
+      points="
+        200,60  245,65  283,82  313,110
+        330,145 335,185 325,225 305,258
+        278,283 245,298 207,302 169,295
+        133,278 108,252  93,218  90,180
+        98,143 118,112  148,88  178,67"
+      fill="#c47a2b"/>
+
+    <!-- === CHEESE BASE (main pizza face, low poly facets) === -->
+    <polygon points="200,200 240,160 280,190 260,240 200,260 140,240 120,190 160,160" fill="#f5c842"/>
+    <polygon points="200,200 160,160 120,190 90,180 108,143 148,112 178,90 200,80" fill="#f0bd38"/>
+    <polygon points="200,200 200,80 240,160" fill="#f2c240"/>
+    <polygon points="200,200 240,160 280,190 310,175 313,145 283,112 245,90 200,80" fill="#f0ba35"/>
+    <polygon points="200,200 280,190 310,210 330,185 310,175" fill="#edb830"/>
+    <polygon points="200,200 280,190 310,210 305,255 278,280 260,240" fill="#f2c03a"/>
+    <polygon points="200,200 260,240 278,280 240,295 207,300 200,260" fill="#f0bb38"/>
+    <polygon points="200,200 200,260 207,300 169,292 133,275 140,240" fill="#edb530"/>
+    <polygon points="200,200 140,240 133,275 108,248  93,215  90,180 120,190" fill="#f1bc3a"/>
+
+    <!-- Extra low-poly facets to fill crust ring -->
+    <polygon points="200,80  178,90  148,112 108,112 118,82 158,68" fill="#c47a2b"/>
+    <polygon points="200,80  240,90  283,112 313,112 283,82 245,65" fill="#c47a2b"/>
+    <polygon points="330,185 310,175 313,145 330,145" fill="#c47a2b"/>
+    <polygon points="330,185 310,210 330,225 335,185" fill="#c47a2b"/>
+    <polygon points="305,258 310,210 330,225 325,258" fill="#c47a2b"/>
+    <polygon points="305,258 278,283 278,280" fill="#c47a2b"/>
+    <polygon points=" 93,215  90,180  93,143  93,215" fill="#c47a2b"/>
+    <polygon points="108,248  93,215 93,215 108,248" fill="#c47a2b"/>
+
+    <!-- Crust highlight -->
+    <polygon points="200,80 178,90 148,112 120,110 108,82 140,68" fill="#d9893a" opacity="0.7"/>
+
+    <!-- === SAUCE PEEKING === -->
+    <polygon points="200,200 200,80  220,130 200,150" fill="#c0392b" opacity="0.3"/>
+    <polygon points="200,200 280,190 265,200 245,185" fill="#c0392b" opacity="0.25"/>
+
+    <!-- === SLICE DIVIDERS === -->
+    <line x1="200" y1="200" x2="200" y2="72"  stroke="#c47a2b" stroke-width="2.5" opacity="0.8"/>
+    <line x1="200" y1="200" x2="304" y2="256" stroke="#c47a2b" stroke-width="2.5" opacity="0.8"/>
+    <line x1="200" y1="200" x2="96"  y2="256" stroke="#c47a2b" stroke-width="2.5" opacity="0.8"/>
+
+    <!-- === PEPPERONI === -->
+    <polygon points="200,130 212,134 216,146 208,155 196,155 188,146 192,134" fill="#a83220"/>
+    <polygon points="200,130 212,134 210,128 204,125 196,126 191,130 192,134" fill="#c0392b" opacity="0.6"/>
+    <polygon points="252,168 264,170 268,182 260,191 248,190 242,181 244,169" fill="#a83220"/>
+    <polygon points="252,168 264,170 262,164 255,162 249,162 244,167 244,169" fill="#c0392b" opacity="0.6"/>
+    <polygon points="255,228 267,231 270,243 262,251 250,251 245,242 247,231" fill="#a83220"/>
+    <polygon points="255,228 267,231 264,226 258,223 251,223 246,228 247,231" fill="#c0392b" opacity="0.6"/>
+    <polygon points="200,255 212,258 215,270 207,278 195,278 189,270 191,258" fill="#a83220"/>
+    <polygon points="200,255 212,258 210,252 204,249 197,249 191,254 191,258" fill="#c0392b" opacity="0.6"/>
+    <polygon points="148,228 160,231 163,243 155,251 143,250 138,241 140,230" fill="#a83220"/>
+    <polygon points="148,228 160,231 158,225 152,222 145,222 139,228 140,230" fill="#c0392b" opacity="0.6"/>
+    <polygon points="150,168 162,170 166,182 158,191 146,190 140,181 142,169" fill="#a83220"/>
+    <polygon points="150,168 162,170 160,164 154,162 147,162 141,167 142,169" fill="#c0392b" opacity="0.6"/>
+
+    <!-- === GREEN PEPPER === -->
+    <polygon points="218,190 226,196 218,202 210,196" fill="#27ae60"/>
+    <polygon points="183,178 190,185 182,190 176,184" fill="#27ae60"/>
+    <polygon points="222,240 228,247 220,251 214,244" fill="#27ae60"/>
+    <polygon points="178,240 185,247 177,250 171,243" fill="#27ae60"/>
+
+    <!-- === BLACK OLIVE === -->
+    <polygon points="200,175 206,180 200,185 194,180" fill="#2c2c2c"/>
+    <polygon points="230,210 236,215 230,220 224,215" fill="#2c2c2c"/>
+    <polygon points="170,210 176,215 170,220 164,215" fill="#2c2c2c"/>
+
+    <!-- === CHEESE BUBBLES === -->
+    <polygon points="205,155 215,152 218,162 210,165 202,162" fill="#fde68a" opacity="0.55"/>
+    <polygon points="175,195 183,192 186,202 178,205 170,202" fill="#fde68a" opacity="0.45"/>
+    <polygon points="228,218 236,215 238,225 230,228 222,225" fill="#fde68a" opacity="0.45"/>
+    <polygon points="195,230 203,227 205,237 197,240 189,237" fill="#fde68a" opacity="0.4"/>
+
+  </g>
+
+  <!-- Static shadow under pizza -->
+  <ellipse cx="205" cy="340" rx="90" ry="12" fill="#000" opacity="0.25"/>
+
+</svg>
