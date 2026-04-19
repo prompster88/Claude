@@ -32,20 +32,9 @@ def load_font(size):
             return ImageFont.truetype(p, size)
     return ImageFont.load_default()
 
-def load_light(size):
-    for p in [
-        "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
-        "/usr/share/fonts/truetype/liberation/LiberationSans-Regular.ttf",
-        "/usr/share/fonts/truetype/freefont/FreeSans.ttf",
-        "/usr/share/fonts/truetype/ubuntu/Ubuntu-R.ttf",
-    ]:
-        if os.path.exists(p):
-            return ImageFont.truetype(p, size)
-    return load_font(size)
-
 FONT_GUT    = load_font(230)
 FONT_HEALTH = load_font(155)
-FONT_Q      = load_light(155)   # lighter weight "?"
+FONT_Q      = FONT_HEALTH
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 def tsize(text, font):
@@ -141,12 +130,10 @@ def make_frame(i):
             "HEALTH", font=FONT_HEALTH,
             fill=(*CHARCOAL, a_hlth)
         )
-        # "?" in sage green, slightly lighter weight
-        a_q = int(255 * hlth_alpha * (1 - fade_out))
         draw.text(
             (HEALTH_X + hw + 8, int(hlth_y) - qh // 2 - qtt),
             "?", font=FONT_Q,
-            fill=(*SAGE, a_q)
+            fill=(*CHARCOAL, a_hlth)
         )
 
     return np.array(frame.convert("RGB"))
