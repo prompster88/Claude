@@ -44,10 +44,60 @@ function getShareText(score, maxStreak, solved) {
   return `SOLO 🎯\n\nניקוד: ${score.toLocaleString('he-IL')} נקודות\n${streakLine}פתרתי ${solved} פאזלים\n\nsolo.co.il — כמה תצליח?`
 }
 
+// AI generation states: idle | loading-image | image-ready | loading-video | video-ready | error
+function useHiggsfieldGeneration(score, solved, maxStreak) {
+  const [state, setState] = useState('idle')
+  const [imageUrl, setImageUrl] = useState(null)
+  const [videoUrl, setVideoUrl] = useState(null)
+  const [errorMsg, setErrorMsg] = useState(null)
+
+  async function generateImage() {
+    setState('loading-image')
+    setErrorMsg(null)
+    try {
+      const res = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ score, solved, maxStreak }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'שגיאה ביצירת תמונה')
+      setImageUrl(data.url)
+      setState('image-ready')
+    } catch (err) {
+      setErrorMsg(err.message)
+      setState('error')
+    }
+  }
+
+  async function generateVideo() {
+    if (!imageUrl) return
+    setState('loading-video')
+    setErrorMsg(null)
+    try {
+      const res = await fetch('/api/generate-video', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ imageUrl }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'שגיאה ביצירת וידאו')
+      setVideoUrl(data.url)
+      setState('video-ready')
+    } catch (err) {
+      setErrorMsg(err.message)
+      setState('image-ready') // fall back to showing the image
+    }
+  }
+
+  return { state, imageUrl, videoUrl, errorMsg, generateImage, generateVideo }
+}
+
 export default function GameOverScreen({ score, highScore, maxStreak, solved, isNewHighScore, onPlayAgain }) {
   const particleRef = useRef(null)
   const [visible, setVisible] = useState(false)
   const [copied, setCopied] = useState(false)
+  const { state, imageUrl, videoUrl, errorMsg, generateImage, generateVideo } = useHiggsfieldGeneration(score, solved, maxStreak)
 
   useEffect(() => {
     const t = setTimeout(() => setVisible(true), 80)
@@ -71,6 +121,8 @@ export default function GameOverScreen({ score, highScore, maxStreak, solved, is
       })
     }
   }
+
+  const isGenerating = state === 'loading-image' || state === 'loading-video'
 
   return (
     <div className={`gameover-screen ${visible ? 'gameover-screen--visible' : ''}`}>
@@ -112,12 +164,96 @@ export default function GameOverScreen({ score, highScore, maxStreak, solved, is
         </div>
       </div>
 
+      {/* Higgsfield AI media */}
+      {(state === 'image-ready' || state === 'loading-video' || state === 'video-ready') && (
+        <div className="go-ai-media">
+          {state === 'video-ready' && videoUrl ? (
+            <video
+              className="go-ai-video"
+              src={videoUrl}
+              autoPlay
+              loop
+              muted
+              playsInline
+            />
+          ) : (
+            imageUrl && (
+              <img
+                className="go-ai-image"
+                src={imageUrl}
+                alt="AI generated game result"
+              />
+            )
+          )}
+          {state === 'loading-video' && (
+            <div className="go-ai-overlay">
+              <span className="go-ai-spinner" />
+              <span className="go-ai-overlay-text">מכין וידאו קולנועי...</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Error */}
+      {state === 'error' && errorMsg && (
+        <p className="go-ai-error">{errorMsg}</p>
+      )}
+
       {/* Actions */}
       <div className="go-actions">
         <button className="go-play-again" onClick={onPlayAgain}>
           שחק שוב
         </button>
-        <button className="go-share" onClick={handleShare}>
+
+        {/* Higgsfield: generate image */}
+        {state === 'idle' && (
+          <button className="go-ai-btn" onClick={generateImage}>
+            <FilmIcon /> צור AI moment
+          </button>
+        )}
+
+        {/* Higgsfield: loading image */}
+        {state === 'loading-image' && (
+          <button className="go-ai-btn go-ai-btn--loading" disabled>
+            <span className="go-ai-spinner" /> יוצר תמונה...
+          </button>
+        )}
+
+        {/* Higgsfield: animate image to video */}
+        {state === 'image-ready' && (
+          <button className="go-ai-btn go-ai-btn--animate" onClick={generateVideo}>
+            <FilmIcon /> הפוך לוידאו קולנועי
+          </button>
+        )}
+
+        {/* Higgsfield: loading video */}
+        {state === 'loading-video' && (
+          <button className="go-ai-btn go-ai-btn--loading" disabled>
+            <span className="go-ai-spinner" /> מייצר וידאו...
+          </button>
+        )}
+
+        {/* Share after video is ready */}
+        {state === 'video-ready' && videoUrl && (
+          <a
+            className="go-ai-btn go-ai-btn--download"
+            href={videoUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            download
+          >
+            <DownloadIcon /> שמור וידאו
+          </a>
+        )}
+
+        {/* Error retry */}
+        {state === 'error' && (
+          <button className="go-ai-btn" onClick={generateImage}>
+            <FilmIcon /> נסה שוב
+          </button>
+        )}
+
+        <button className="go-share" onClick={handleShare} disabled={isGenerating}>
           {copied ? '✓ הועתק!' : <><ShareIcon /> שתף ניקוד</>}
         </button>
       </div>
@@ -135,6 +271,24 @@ function ShareIcon() {
   return (
     <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
       <path d="M6 3H3a1 1 0 00-1 1v9a1 1 0 001 1h10a1 1 0 001-1v-3M10 2h4v4M14 2L7 9"
+        stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  )
+}
+
+function FilmIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+      <rect x="1" y="3" width="14" height="10" rx="1.5" stroke="currentColor" strokeWidth="1.5"/>
+      <path d="M5 3V13M11 3V13M1 6h2M13 6h2M1 10h2M13 10h2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
+function DownloadIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+      <path d="M8 2v8M5 7l3 3 3-3M2 11v1a2 2 0 002 2h8a2 2 0 002-2v-1"
         stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   )

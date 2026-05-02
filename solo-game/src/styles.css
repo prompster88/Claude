@@ -1846,3 +1846,116 @@ input {
   letter-spacing: 0.08em;
   font-style: italic;
 }
+
+/* ===========================
+   HIGGSFIELD AI GENERATION
+   =========================== */
+
+.go-ai-btn {
+  width: 100%;
+  padding: 14px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  color: var(--gold-light);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  border-radius: var(--r);
+  border: 1px solid rgba(201, 160, 80, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: color 0.2s, background 0.2s, border-color 0.2s, transform 0.15s, box-shadow 0.2s;
+  cursor: pointer;
+}
+
+.go-ai-btn:hover:not(:disabled) {
+  color: var(--gold-bright);
+  border-color: rgba(201, 160, 80, 0.6);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(201, 160, 80, 0.18);
+}
+
+.go-ai-btn--loading {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.go-ai-btn--animate {
+  border-color: rgba(201, 160, 80, 0.5);
+  background: linear-gradient(135deg, #1e1a00 0%, #2a2200 100%);
+}
+
+.go-ai-btn--download {
+  text-decoration: none;
+  border-color: rgba(201, 160, 80, 0.5);
+}
+
+.go-ai-spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(201, 160, 80, 0.3);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: ai-spin 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes ai-spin {
+  to { transform: rotate(360deg); }
+}
+
+.go-ai-media {
+  position: relative;
+  width: 100%;
+  border-radius: var(--r);
+  overflow: hidden;
+  border: 1px solid rgba(201, 160, 80, 0.2);
+  animation: fade-up 0.4s var(--ease) both;
+  background: var(--surface);
+}
+
+.go-ai-image,
+.go-ai-video {
+  display: block;
+  width: 100%;
+  max-height: 360px;
+  object-fit: cover;
+  border-radius: var(--r);
+}
+
+.go-ai-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(7, 7, 7, 0.65);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border-radius: var(--r);
+}
+
+.go-ai-overlay .go-ai-spinner {
+  width: 28px;
+  height: 28px;
+  border-width: 3px;
+}
+
+.go-ai-overlay-text {
+  font-size: 13px;
+  color: var(--gold-light);
+  letter-spacing: 0.06em;
+}
+
+.go-ai-error {
+  font-size: 12px;
+  color: var(--error);
+  text-align: center;
+  padding: 8px 12px;
+  background: var(--error-dim);
+  border-radius: var(--r-sm);
+  border: 1px solid rgba(201, 68, 68, 0.2);
+  animation: fade-up 0.3s var(--ease) both;
+}
