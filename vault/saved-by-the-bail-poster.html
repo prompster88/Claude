@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Saved by the Bail — Movie Poster</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@300;400;600;700&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-base:      #14110E;
+      --bg-surface:   #211C16;
+      --bg-elevated:  #2E261C;
+      --accent:       #FFC21A;
+      --accent-muted: rgba(255,194,26,0.18);
+      --accent-glow:  rgba(255,194,26,0.55);
+      --accent-2:     #E5483B;
+      --accent-2-glow:rgba(229,72,59,0.45);
+      --gavel-brass:  #C9A050;
+      --text-primary: #FFF7E6;
+      --text-secondary:#C9BBA0;
+      --bar-steel:    #3A3A3A;
+      --font-title:   "Anton", system-ui, sans-serif;
+      --font-display: "Oswald", system-ui, sans-serif;
+    }
+
+    body {
+      background: #0A0807;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: var(--font-display);
+    }
+
+    /* ── POSTER FRAME ─────────────────────────────────────────── */
+    .poster {
+      position: relative;
+      width: 600px;
+      height: 889px; /* ~27:40 movie poster ratio */
+      background: var(--bg-base);
+      overflow: hidden;
+      border: 3px solid #2a2218;
+      box-shadow:
+        0 0 0 1px #0a0807,
+        0 30px 80px rgba(0,0,0,0.8),
+        0 0 120px rgba(255,194,26,0.08);
+    }
+
+    /* ── BACKGROUND RADIAL SPOTLIGHT ─────────────────────────── */
+    .poster::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 65% 55% at 50% 40%,
+          #2E261C 0%, #1a1510 45%, #14110E 100%);
+      z-index: 0;
+    }
+
+    /* ── JAIL BAR STREAKS ─────────────────────────────────────── */
+    .bars {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .bar {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 26px;
+      background: linear-gradient(90deg,
+        transparent,
+        rgba(58,58,58,0.22) 30%,
+        rgba(70,65,55,0.28) 50%,
+        rgba(58,58,58,0.22) 70%,
+        transparent);
+      transform: skewX(-14deg);
+      transform-origin: top center;
+    }
+    .bar:nth-child(1) { left:  4%; }
+    .bar:nth-child(2) { left: 20%; }
+    .bar:nth-child(3) { left: 36%; }
+    .bar:nth-child(4) { left: 52%; }
+    .bar:nth-child(5) { left: 68%; }
+    .bar:nth-child(6) { left: 84%; }
+
+    /* ── SIREN LIGHT SWEEP ───────────────────────────────────── */
+    .siren-left, .siren-right {
+      position: absolute;
+      top: -10%;
+      width: 260px;
+      height: 120%;
+      z-index: 2;
+      pointer-events: none;
+    }
+    .siren-left {
+      left: -80px;
+      background: radial-gradient(ellipse at 0% 20%,
+        rgba(229,72,59,0.18) 0%, transparent 65%);
+      transform: rotate(-15deg);
+    }
+    .siren-right {
+      right: -80px;
+      background: radial-gradient(ellipse at 100% 20%,
+        rgba(229,72,59,0.12) 0%, transparent 65%);
+      transform: rotate(15deg);
+    }
+
+    /* ── CONTENT STACK ───────────────────────────────────────── */
+    .content {
+      position: relative;
+      z-index: 10;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* ── STUDIO / PRODUCTION LINE ────────────────────────────── */
+    .studio-line {
+      margin-top: 28px;
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 10px;
+      letter-spacing: 0.32em;
+      color: var(--gavel-brass);
+      text-transform: uppercase;
+      opacity: 0.75;
+    }
+
+    /* ── HERO ILLUSTRATION ZONE ──────────────────────────────── */
+    .hero {
+      position: relative;
+      width: 100%;
+      flex: 1;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding-bottom: 0;
+    }
+
+    /* Stylised silhouette figures built from CSS shapes */
+    .figure-wrap {
+      position: relative;
+      width: 100%;
+      height: 400px;
+    }
+
+    /* Defendant — leaping left figure */
+    .defendant {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-90px);
+    }
+    .defendant .body {
+      position: relative;
+      width: 70px;
+      height: 160px;
+      background: linear-gradient(160deg, #2a2218 0%, #1a1510 100%);
+      border-radius: 6px 6px 0 0;
+      transform: rotate(-8deg) translateY(-20px);
+    }
+    .defendant .tie {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 12px;
+      height: 60px;
+      background: var(--accent-2);
+      clip-path: polygon(30% 0%, 70% 0%, 85% 70%, 50% 100%, 15% 70%);
+    }
+    .defendant .head {
+      width: 48px;
+      height: 52px;
+      background: #3d2e20;
+      border-radius: 50% 50% 40% 40%;
+      margin: 0 auto 4px;
+      transform: rotate(-8deg) translateX(6px);
+      box-shadow: 0 -2px 8px rgba(255,194,26,0.15);
+    }
+    .defendant .arm-fly {
+      position: absolute;
+      top: 30px;
+      right: -38px;
+      width: 50px;
+      height: 14px;
+      background: #2a2218;
+      border-radius: 7px;
+      transform: rotate(-30deg);
+    }
+    .defendant .leg-front {
+      position: absolute;
+      bottom: -60px;
+      left: 8px;
+      width: 22px;
+      height: 70px;
+      background: #2a2218;
+      border-radius: 4px;
+      transform: rotate(20deg);
+    }
+    .defendant .leg-back {
+      position: absolute;
+      bottom: -40px;
+      left: 38px;
+      width: 22px;
+      height: 70px;
+      background: #1f1a12;
+      border-radius: 4px;
+      transform: rotate(-15deg);
+    }
+    .defendant .shoe {
+      position: absolute;
+      bottom: -80px;
+      left: -4px;
+      width: 32px;
+      height: 14px;
+      background: #111;
+      border-radius: 0 8px 8px 0;
+      transform: rotate(20deg);
+    }
+
+    /* Bondsman — behind / right, throwing cash */
+    .bondsman {
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(20px);
+    }
+    .bondsman .body {
+      width: 80px;
+      height: 170px;
+      background: linear-gradient(160deg, #4a3800 0%, #2e2200 100%);
+      border-radius: 6px 6px 0 0;
+      position: relative;
+    }
+    .bondsman .chain {
+      position: absolute;
+      top: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 18px;
+      height: 18px;
+      border: 3px solid var(--gavel-brass);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--accent-glow);
+    }
+    .bondsman .head {
+      width: 54px;
+      height: 58px;
+      background: #3d2510;
+      border-radius: 50% 50% 40% 40%;
+      margin: 0 auto 4px;
+      transform: rotate(5deg) translateX(-4px);
+    }
+    .bondsman .arm-throw {
+      position: absolute;
+      top: 20px;
+      left: -40px;
+      width: 52px;
+      height: 14px;
+      background: #4a3800;
+      border-radius: 7px;
+      transform: rotate(35deg);
+    }
+    .bondsman .leg-l {
+      position: absolute;
+      bottom: -55px;
+      left: 12px;
+      width: 24px;
+      height: 65px;
+      background: #2e2200;
+      border-radius: 4px;
+      transform: rotate(-6deg);
+    }
+    .bondsman .leg-r {
+      position: absolute;
+      bottom: -50px;
+      left: 42px;
+      width: 24px;
+      height: 65px;
+      background: #221a00;
+      border-radius: 4px;
+      transform: rotate(6deg);
+    }
+
+    /* Cash confetti */
+    .cash {
+      position: absolute;
+      font-size: 11px;
+      font-family: var(--font-display);
+      font-weight: 700;
+      color: #4daa57;
+      text-shadow: 0 0 6px rgba(77,170,87,0.6);
+      pointer-events: none;
+      animation: float 3s ease-in-out infinite;
+    }
+    .cash:nth-child(1) { top: 60px; left: 18%;  animation-delay: 0s; }
+    .cash:nth-child(2) { top: 30px; left: 25%;  animation-delay: 0.4s; font-size: 9px; }
+    .cash:nth-child(3) { top: 80px; left: 30%;  animation-delay: 0.8s; }
+    .cash:nth-child(4) { top: 20px; left: 38%;  animation-delay: 1.2s; font-size: 13px; }
+    .cash:nth-child(5) { top: 50px; left: 44%;  animation-delay: 0.6s; font-size: 9px; }
+    @keyframes float {
+      0%, 100% { transform: translateY(0) rotate(-5deg); }
+      50%       { transform: translateY(-12px) rotate(8deg); }
+    }
+
+    /* Cell door SVG-style bars (top edge) */
+    .cell-door {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 24px;
+      display: flex;
+      gap: 18px;
+      padding: 0 30px;
+      align-items: flex-end;
+    }
+    .cell-door span {
+      flex: 1;
+      height: 18px;
+      background: linear-gradient(90deg, #555, #888, #555);
+      border-radius: 2px 2px 0 0;
+      box-shadow: 0 0 4px rgba(255,255,255,0.05);
+    }
+
+    /* ── TITLE BLOCK ─────────────────────────────────────────── */
+    .title-block {
+      width: 100%;
+      padding: 0 32px;
+      text-align: center;
+      margin-top: 8px;
+    }
+
+    .eyebrow {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 18px;
+      letter-spacing: 0.18em;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+    }
+
+    .title-main {
+      font-family: var(--font-title);
+      font-size: 112px;
+      line-height: 0.85;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: -0.02em;
+      text-shadow:
+        0 0 40px var(--accent-glow),
+        0 0 80px rgba(255,194,26,0.25),
+        6px 6px 0 rgba(0,0,0,0.8);
+      position: relative;
+    }
+
+    /* The gavel replaces the crossbar of A in BAIL visually via a badge */
+    .gavel-badge {
+      display: inline-block;
+      position: relative;
+    }
+    .gavel-icon {
+      position: absolute;
+      top: 42px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 18px;
+      opacity: 0.9;
+      filter: drop-shadow(0 0 6px var(--gavel-brass));
+    }
+
+    /* ── TAGLINE STAMP ───────────────────────────────────────── */
+    .tagline-stamp {
+      margin-top: 18px;
+      display: inline-block;
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent-2);
+      border: 2.5px solid var(--accent-2);
+      border-radius: 3px;
+      padding: 7px 18px;
+      transform: rotate(-2.5deg);
+      box-shadow:
+        0 0 18px var(--accent-2-glow),
+        inset 0 0 12px rgba(229,72,59,0.06);
+      background: rgba(20,17,14,0.65);
+    }
+
+    /* ── CAST LINE ───────────────────────────────────────────── */
+    .cast-line {
+      margin-top: 20px;
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: 11.5px;
+      letter-spacing: 0.16em;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+    }
+
+    /* ── DIVIDER ─────────────────────────────────────────────── */
+    .divider {
+      width: 80%;
+      height: 1px;
+      background: linear-gradient(90deg,
+        transparent, rgba(201,160,80,0.4) 20%,
+        rgba(201,160,80,0.4) 80%, transparent);
+      margin: 16px auto 0;
+    }
+
+    /* ── BOTTOM INFO ROW ─────────────────────────────────────── */
+    .bottom-row {
+      width: 100%;
+      padding: 10px 28px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .rating-box {
+      font-family: var(--font-display);
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text-primary);
+      border: 2px solid var(--text-secondary);
+      padding: 3px 9px;
+      letter-spacing: 0.05em;
+      opacity: 0.85;
+    }
+
+    .film-icons {
+      font-size: 11px;
+      color: var(--gavel-brass);
+      letter-spacing: 0.1em;
+      opacity: 0.7;
+      font-family: var(--font-display);
+      font-weight: 300;
+    }
+
+    .website-line {
+      font-family: var(--font-display);
+      font-weight: 300;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      color: var(--text-secondary);
+      opacity: 0.55;
+    }
+
+    /* ── BILLING BLOCK ───────────────────────────────────────── */
+    .billing-block {
+      width: 100%;
+      padding: 8px 28px 22px;
+      font-family: var(--font-display);
+      font-weight: 300;
+      font-size: 7.5px;
+      letter-spacing: 0.08em;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      opacity: 0.5;
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    /* ── AMBIENT GLOW PULSE ───────────────────────────────────── */
+    .glow-pulse {
+      position: absolute;
+      bottom: 240px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+      animation: pulse 4s ease-in-out infinite;
+      z-index: 1;
+      pointer-events: none;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 0.3; transform: translateX(-50%) scale(1); }
+      50%       { opacity: 0.6; transform: translateX(-50%) scale(1.15); }
+    }
+  </style>
+</head>
+<body>
+  <div class="poster">
+
+    <!-- Jail bar streaks -->
+    <div class="bars">
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+    </div>
+
+    <!-- Siren light sweeps -->
+    <div class="siren-left"></div>
+    <div class="siren-right"></div>
+
+    <!-- Ambient glow -->
+    <div class="glow-pulse"></div>
+
+    <div class="content">
+
+      <!-- Studio -->
+      <div class="studio-line">Modus Pictures &nbsp;·&nbsp; A Bail Bond Production</div>
+
+      <!-- Hero scene -->
+      <div class="hero">
+        <div class="figure-wrap">
+
+          <!-- Cell door bars at top -->
+          <div class="cell-door">
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+          </div>
+
+          <!-- Cash confetti -->
+          <div style="position:absolute;top:60px;left:15%;width:70%;pointer-events:none">
+            <span class="cash">$100</span>
+            <span class="cash">$$$</span>
+            <span class="cash">$100</span>
+            <span class="cash">💵</span>
+            <span class="cash">$50</span>
+          </div>
+
+          <!-- Defendant (leaping) -->
+          <div class="defendant">
+            <div class="head"></div>
+            <div class="body">
+              <div class="tie"></div>
+              <div class="arm-fly"></div>
+            </div>
+            <div class="leg-front"><div class="shoe"></div></div>
+            <div class="leg-back"></div>
+          </div>
+
+          <!-- Bondsman -->
+          <div class="bondsman">
+            <div class="head"></div>
+            <div class="body">
+              <div class="chain"></div>
+              <div class="arm-throw"></div>
+            </div>
+            <div class="leg-l"></div>
+            <div class="leg-r"></div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Title block -->
+      <div class="title-block">
+        <div class="eyebrow">Saved by the</div>
+        <div class="title-main">
+          <span class="gavel-badge">
+            B<span style="color:var(--gavel-brass)">A</span>IL
+            <span class="gavel-icon">🔨</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Tagline stamp -->
+      <div class="tagline-stamp">
+        "Crime doesn't pay. Bail does."
+      </div>
+
+      <!-- Cast -->
+      <div class="cast-line">
+        Ray Romano &nbsp;&nbsp;·&nbsp;&nbsp; Idris Elba &nbsp;&nbsp;·&nbsp;&nbsp; Awkwafina
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Bottom row -->
+      <div class="bottom-row">
+        <div class="rating-box">R</div>
+        <div class="film-icons">IN THEATRES &nbsp;·&nbsp; SUMMER 2025</div>
+        <div class="website-line">savedbythebail.com</div>
+      </div>
+
+      <!-- Billing block -->
+      <div class="billing-block">
+        Modus Pictures presents a Bail Bond Production "Saved by the Bail" · Ray Romano · Idris Elba · Awkwafina ·
+        Casting by Donna Morong · Costume Design by Lena Barrows · Music by The Bounty Beats ·
+        Edited by Carl Reiner Jr. · Production Design by Mo Shapira · Director of Photography Jan Koslowski ·
+        Executive Producers Jonathan Ben-David &amp; Dana Roth · Written by Tommy Vibes ·
+        Produced by Leah Gold · Directed by Sam Cohen ·
+        © 2025 Modus Pictures LLC · All Rights Reserved · MPAA Rating Pending
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>
