@@ -31,7 +31,7 @@ float fbm(vec3 p){float f=0.0;float a=0.5;for(int i=0;i<3;i++){f+=a*snoise(p);p*
 
 const VERT = `
 uniform float dispAmp; uniform float dispFreq;
-varying vec3 vWorldPos; varying vec3 vNormal; varying vec3 vLocal;
+varying vec3 vWorldPos; varying vec3 vNormal; varying vec3 vLocal; varying vec3 vRx; varying vec3 vRy; varying vec3 vRz;
 ${NOISE}
 void main(){
   #ifdef USE_INSTANCING
@@ -43,7 +43,7 @@ void main(){
   vec3 n = normalize(mat3(m) * normal);
   float d = fbm(wp.xyz * dispFreq) * dispAmp;
   wp.xyz += n * d;
-  vWorldPos = wp.xyz; vNormal = n; vLocal = position;
+  vWorldPos = wp.xyz; vNormal = n; vLocal = position; vRx = normalize(mat3(m)[0]); vRy = normalize(mat3(m)[1]); vRz = normalize(mat3(m)[2]);
   gl_Position = projectionMatrix * viewMatrix * wp;
 }`;
 
@@ -51,15 +51,19 @@ void main(){
 const SEM_FRAG = `
 uniform vec3 tint; uniform vec3 dark; uniform vec3 highlight;
 uniform vec3 detector; uniform float bumpAmp; uniform float bumpFreq; uniform float bumpAmp2; uniform float bumpFreq2;
-uniform vec2 aoY; uniform float aoMin; uniform float edgeGain; uniform float edgePow; uniform float gainMul;
-varying vec3 vWorldPos; varying vec3 vNormal; varying vec3 vLocal;
+uniform vec2 aoY; uniform float aoMin; uniform float edgeGain; uniform float edgePow; uniform float gainMul; uniform vec3 aniso; uniform float useLocal;
+varying vec3 vWorldPos; varying vec3 vNormal; varying vec3 vLocal; varying vec3 vRx; varying vec3 vRy; varying vec3 vRz;
 ${NOISE}
 float tex2(vec3 p){ return snoise(p) + 0.5*snoise(vec3(p.y*1.9+3.1, p.z*2.1-1.7, p.x*2.0+5.3)); }
 vec3 grad(vec3 p,float f){float e=0.006;float n0=tex2(p*f);
  return vec3(tex2((p+vec3(e,0,0))*f)-n0,tex2((p+vec3(0,e,0))*f)-n0,tex2((p+vec3(0,0,e))*f)-n0)/e;}
+vec3 toLocal(vec3 v){ return vec3(dot(vRx,v),dot(vRy,v),dot(vRz,v)); }
+// anisotropic wrinkle field defined in the rod's local frame, differentiated along world axes
+vec3 gradL(vec3 pl,float f){float e=0.006;float n0=tex2(pl*aniso*f);
+ return vec3(tex2((pl+toLocal(vec3(e,0,0)))*aniso*f)-n0,tex2((pl+toLocal(vec3(0,e,0)))*aniso*f)-n0,tex2((pl+toLocal(vec3(0,0,e)))*aniso*f)-n0)/e;}
 void main(){
   vec3 N = normalize(vNormal);
-  vec3 g = grad(vWorldPos,bumpFreq)*bumpAmp + grad(vWorldPos+vec3(7.1),bumpFreq2)*bumpAmp2;
+  vec3 g = grad(vWorldPos,bumpFreq)*bumpAmp + (useLocal>0.5 ? gradL(vLocal,bumpFreq2) : grad(vWorldPos+vec3(7.1),bumpFreq2))*bumpAmp2;
   g -= N*dot(g,N);
   N = normalize(N - g*0.012);
   vec3 V = normalize(cameraPosition - vWorldPos);
@@ -94,7 +98,7 @@ function mat(opts){
   const o = Object.assign({
     mode:'sem', tint:'#c9b79c', dark:'#221b17', highlight:'#f4ede0',
     detector:[-0.6,0.8,0.5], bumpAmp:1.0, bumpFreq:40, bumpAmp2:0.6, bumpFreq2:9,
-    aoY:[-1,-0.5], aoMin:1, edgeGain:0.75, edgePow:2.2, gainMul:1, dispAmp:0.0, dispFreq:6, fill:0.5,
+    aoY:[-1,-0.5], aoMin:1, edgeGain:0.75, edgePow:2.2, gainMul:1, dispAmp:0.0, dispFreq:6, fill:0.5, aniso:[1,1,1], useLocal:0,
     blending:THREE.NormalBlending, transparent:false, depthWrite:true,
   }, opts);
   return new THREE.ShaderMaterial({
@@ -103,7 +107,7 @@ function mat(opts){
       tint:{value:new THREE.Color(o.tint)}, dark:{value:new THREE.Color(o.dark)}, highlight:{value:new THREE.Color(o.highlight)},
       detector:{value:new THREE.Vector3(...o.detector)}, bumpAmp:{value:o.bumpAmp}, bumpFreq:{value:o.bumpFreq},
       bumpAmp2:{value:o.bumpAmp2}, bumpFreq2:{value:o.bumpFreq2}, aoY:{value:new THREE.Vector2(...o.aoY)}, aoMin:{value:o.aoMin},
-      edgeGain:{value:o.edgeGain}, edgePow:{value:o.edgePow}, gainMul:{value:o.gainMul}, dispAmp:{value:o.dispAmp}, dispFreq:{value:o.dispFreq}, fill:{value:o.fill},
+      edgeGain:{value:o.edgeGain}, edgePow:{value:o.edgePow}, gainMul:{value:o.gainMul}, dispAmp:{value:o.dispAmp}, dispFreq:{value:o.dispFreq}, fill:{value:o.fill}, aniso:{value:new THREE.Vector3(...o.aniso)}, useLocal:{value:o.useLocal},
     },
     blending:o.blending, transparent:o.transparent, depthWrite:o.depthWrite, side:THREE.FrontSide,
   });
@@ -131,6 +135,21 @@ function placeRod(mesh,pos,yaw,pitch,roll=0){
   mesh.position.set(...pos);
   mesh.rotation.set(0,0,0);
   mesh.rotateY(yaw); mesh.rotateZ(Math.PI/2+pitch); mesh.rotateY(roll); // lay along ground
+}
+// fine appendages (pili/fimbriae, ~10 nm wide) sprouting from a rod's surface, and membrane vesicles (20-100 nm) nearby
+function addPili(parent,mesh,r,len,count,pMat){
+  mesh.updateWorldMatrix(true,false);
+  for(let i=0;i<count;i++){
+    const th=R(0,6.28), y=R(-len/2,len/2); const lp=new THREE.Vector3(r*Math.cos(th),y,r*Math.sin(th));
+    const ln=new THREE.Vector3(Math.cos(th),0,Math.sin(th)).multiplyScalar(1).add(new THREE.Vector3(RN()*0.6,RN()*0.6,RN()*0.6)).normalize();
+    const pts=[]; const L=R(0.25,0.9); const p=lp.clone(); const d=ln.clone();
+    for(let j=0;j<5;j++){ pts.push(mesh.localToWorld(p.clone())); p.add(d.clone().multiplyScalar(L/4)); d.add(new THREE.Vector3(RN()*0.5,RN()*0.5,RN()*0.5)).normalize(); }
+    parent.add(new THREE.Mesh(tubeAlong(pts,R(0.006,0.011),16),pMat));
+  }
+}
+function addVesicles(parent,around,count,spread,vMat,ground){
+  for(let i=0;i<count;i++){ const r=R(0.025,0.07); const m=new THREE.Mesh(new THREE.SphereGeometry(r,14,10),vMat);
+    const x=around[0]+RN()*spread, z=around[2]+RN()*spread; m.position.set(x,ground(x,z)+r*0.7,z); parent.add(m); }
 }
 // Bifidobacterium: rod with two short diverging branches at one pole ("bifid")
 function bifid(material,{r=0.38,len=2.6,branch=1.2,spread=0.62}={}){
@@ -186,14 +205,17 @@ function scene1(){ // Intersections: Bifidobacterium and Lactobacillus on the mi
   base.rotation.x=-Math.PI/2; { const pa=base.geometry.attributes.position; for(let i=0;i<pa.count;i++){pa.setZ(i,epithelialHeight(pa.getX(i),-pa.getY(i)));} base.geometry.computeVertexNormals(); }
   scene.add(base);
 
-  const bMat=mat({tint:'#ad7860',dark:'#2b1d17',highlight:'#f6e4d3',aoY:[0.6,1.5],aoMin:0.5,gainMul:1.25,bumpAmp:0.35,bumpFreq:26,bumpAmp2:0.9,bumpFreq2:4,edgeGain:0.8,edgePow:2.4,dispAmp:0.02,dispFreq:4});
-  const lMat=mat({tint:'#a67a66',dark:'#2b1d17',highlight:'#f4e2d2',aoY:[0.6,1.5],aoMin:0.5,gainMul:1.25,bumpAmp:0.3,bumpFreq:26,bumpAmp2:0.5,bumpFreq2:5,edgeGain:0.8,edgePow:2.4,dispAmp:0.01,dispFreq:5});
+  const bMat=mat({tint:'#ad7860',dark:'#2b1d17',highlight:'#f6e4d3',aoY:[0.6,1.5],aoMin:0.5,gainMul:1.25,bumpAmp:0.35,bumpFreq:26,bumpAmp2:0.55,bumpFreq2:9,aniso:[1,0.35,1],useLocal:1,edgeGain:0.8,edgePow:2.4,dispAmp:0.025,dispFreq:4});
+  const lMat=mat({tint:'#a67a66',dark:'#2b1d17',highlight:'#f4e2d2',aoY:[0.6,1.5],aoMin:0.5,gainMul:1.25,bumpAmp:0.3,bumpFreq:26,bumpAmp2:0.5,bumpFreq2:9,aniso:[1,0.35,1],useLocal:1,edgeGain:0.8,edgePow:2.4,dispAmp:0.01,dispFreq:5});
   const top=(x,z)=>epithelialHeight(x,z)+1.0;
   // hero Bifidobacterium (bifid pole toward camera-left), resting on microvillus tips
   const hero=bifid(bMat,{r:0.4,len:2.7,branch:1.0,spread:0.48});
-  hero.position.set(-0.4,top(-0.4,0.3)+0.42,0.3); aim(hero,[0.9,0.0,0.45]); scene.add(hero);
+  hero.position.set(-0.4,top(-0.4,0.3)+0.42,0.3); aim(hero,[0.9,0.0,0.45]);
+  const pMat=mat({tint:'#cbb9a4',dark:'#2a2420',highlight:'#f7f2e8',aoMin:1,bumpAmp:0.0,bumpAmp2:0.0,edgeGain:0.9,edgePow:1.6,gainMul:1.1});
+  scene.updateMatrixWorld(true); addPili(scene,hero.children[0],0.4,2.7,26,pMat);
+  addVesicles(scene,[-0.4,0,0.3],28,2.2,bMat,top); scene.add(hero);
   // second, partially dividing, further back; third at the edge
-  const b2=bifid(bMat,{r:0.36,len:2.3,branch:0.8,spread:0.42}); b2.position.set(3.4,top(3.4,-2.6)+0.38,-2.6); aim(b2,[-0.6,0.03,0.8]); scene.add(b2);
+  const b2=bifid(bMat,{r:0.36,len:2.3,branch:0.8,spread:0.42}); b2.position.set(3.4,top(3.4,-2.6)+0.38,-2.6); aim(b2,[-0.6,0.03,0.8]); scene.updateMatrixWorld(true); addPili(scene,b2.children[0],0.36,2.3,12,pMat); scene.add(b2);
   const b3=bifid(bMat,{r:0.38,len:2.9,branch:0.9,spread:0.5}); b3.position.set(-4.6,top(-4.6,1.6)+0.4,1.6); aim(b3,[0.35,0.02,-0.94]); scene.add(b3);
   // Lactobacillus chain: 0.8 x 3 µm rods end to end, slight kinks, septa at the joins
   let cx=-7.5,cz=-3.8,ang=0.12;
@@ -204,14 +226,16 @@ function scene1(){ // Intersections: Bifidobacterium and Lactobacillus on the mi
     cx+=Math.cos(ang)*(len+0.06); cz+=Math.sin(ang)*(len+0.06); ang+=R(-0.25,0.25);
   }
   // mucus strands: dehydrated mucin nets seen in fixed SEM preps, draped over the brush border
-  const muMat=mat({tint:'#d9cfbf',dark:'#2a2420',highlight:'#f7f2e8',aoMin:1,bumpAmp:0.5,bumpFreq:50,edgeGain:0.9,edgePow:2.0});
-  for(let i=0;i<22;i++){
+  const muMat=mat({tint:'#c9bfae',dark:'#2a2420',highlight:'#efe8dc',aoMin:1,bumpAmp:0.5,bumpFreq:50,edgeGain:0.8,edgePow:2.0,gainMul:0.95});
+  for(let i=0;i<26;i++){
     const pts=[]; let x=R(-9,9),z=R(-9,9),a=R(0,6.28); const L=Math.floor(R(4,9));
-    for(let j=0;j<L;j++){pts.push(new THREE.Vector3(x,top(x,z)+R(0.02,0.25),z)); a+=R(-0.9,0.9); x+=Math.cos(a)*R(0.4,1.0); z+=Math.sin(a)*R(0.4,1.0);}
-    scene.add(new THREE.Mesh(tubeAlong(pts,R(0.02,0.05),40),muMat));
+    for(let j=0;j<L;j++){pts.push(new THREE.Vector3(x,top(x,z)+(j%2?R(0.15,0.4):R(-0.05,0.08)),z)); a+=R(-0.9,0.9); x+=Math.cos(a)*R(0.4,1.0); z+=Math.sin(a)*R(0.4,1.0);}
+    scene.add(new THREE.Mesh(tubeAlong(pts,R(0.015,0.045),40),muMat));
+    // branching net: side threads
+    if(rnd()<0.6){ const k=Math.floor(R(1,L-1)); const p0=pts[k]; const q=[p0.clone()]; let bx=p0.x,bz=p0.z,ba=R(0,6.28); for(let j=0;j<3;j++){bx+=Math.cos(ba)*R(0.3,0.7); bz+=Math.sin(ba)*R(0.3,0.7); ba+=R(-0.8,0.8); q.push(new THREE.Vector3(bx,top(bx,bz)+R(0.0,0.3),bz));} scene.add(new THREE.Mesh(tubeAlong(q,R(0.012,0.03),20),muMat)); }
   }
   camera.position.set(0.5,6.2,4.2); camera.lookAt(0.2,1.0,0.1);
-  post={focus:camera.position.distanceTo(new THREE.Vector3(0.2,1.45,0.5)),aperture:80,maxCoC:34,ao:{radius:0.35,strength:0.85},bloom:null,grain:0.05,vignette:0.5,contrast:1.12,lift:-0.01,scan:1,shot:0};
+  post={focus:camera.position.distanceTo(new THREE.Vector3(0.2,1.45,0.5)),aperture:80,maxCoC:34,ao:{radius:0.35,strength:0.85,radius2:1.4,strength2:0.55},bloom:null,grain:0.05,vignette:0.5,contrast:1.12,lift:-0.01,scan:1,shot:0};
 }
 
 function scene2(){ // Populations: biofilm of short rods (Bacteroides-like) in an EPS matrix, monochrome SEM
@@ -220,7 +244,7 @@ function scene2(){ // Populations: biofilm of short rods (Bacteroides-like) in a
   const sub=new THREE.Mesh(new THREE.PlaneGeometry(40,40,80,80),mat({tint:'#4d4a46',dark:'#0a0a0a',highlight:'#8c8883',aoMin:1,bumpAmp:0.9,bumpFreq:5,bumpAmp2:0.35,bumpFreq2:18,edgeGain:0.3}));
   sub.rotation.x=-Math.PI/2; { const pa=sub.geometry.attributes.position; for(let i=0;i<pa.count;i++){const x=pa.getX(i),y=pa.getY(i);pa.setZ(i,0.25*Math.sin(x*0.7)*Math.cos(y*0.5)+0.1*Math.sin(x*2.3+y*1.7));} sub.geometry.computeVertexNormals(); }
   scene.add(sub);
-  const cMat=mat({tint:'#b6b3ad',dark:'#101010',highlight:'#f5f3ee',aoY:[0.05,0.9],aoMin:0.45,gainMul:1.2,bumpAmp:0.3,bumpFreq:26,bumpAmp2:0.5,bumpFreq2:5,edgeGain:0.85,edgePow:2.2,dispAmp:0.014,dispFreq:4});
+  const cMat=mat({tint:'#b6b3ad',dark:'#101010',highlight:'#f5f3ee',aoY:[0.05,0.9],aoMin:0.45,gainMul:1.2,bumpAmp:0.3,bumpFreq:26,bumpAmp2:0.5,bumpFreq2:9,aniso:[1,0.35,1],useLocal:1,edgeGain:0.85,edgePow:2.2,dispAmp:0.014,dispFreq:4});
   const epsMat=mat({tint:'#a8a49d',dark:'#141414',highlight:'#efece6',aoMin:1,bumpAmp:0.4,bumpFreq:60,edgeGain:1.0,edgePow:1.8});
   // pack rods on the substrate, two loose clusters, occasional second layer
   const cells=[];
@@ -247,7 +271,8 @@ function scene2(){ // Populations: biofilm of short rods (Bacteroides-like) in a
   for(let i=0;i<300;i++)tryPlace(6.0,3.5,3.2,0, -0.4);
   for(let i=0;i<200;i++)tryPlace(0.4,0.3,3.0,1, 0.6);
   for(const c of cells){
-    const div=rnd()<0.28; const rod=new THREE.Mesh(rodGeo({r:c.r,len:c.len,septum:div?R(0.15,0.35):0,septumW:0.22,bend:R(-0.03,0.03)}),cMat);
+    const div=rnd()<0.28; const m=cMat.clone(); m.uniforms.gainMul.value=rnd()<0.06?R(1.4,1.6):R(0.92,1.14); m.uniforms.bumpAmp2.value=R(0.3,0.85);
+    const rod=new THREE.Mesh(rodGeo({r:c.r,len:c.len,septum:div?R(0.15,0.35):0,septumW:0.22,bend:R(-0.03,0.03)}),m);
     const y=c.layer===0?c.r+0.05+RN()*0.03:c.r*3+0.05;
     rod.position.set(c.x,y,c.z); aim(rod,[Math.cos(c.a),RN()*0.12,Math.sin(c.a)]); c.y=y; scene.add(rod);
   }
@@ -261,9 +286,12 @@ function scene2(){ // Populations: biofilm of short rods (Bacteroides-like) in a
     }
   }
   for(const c of cells){ if(rnd()<0.5){ const ang=R(0,6.28),L=R(0.5,1.3); const pts=[new THREE.Vector3(c.x,c.y+0.1,c.z),new THREE.Vector3(c.x+Math.cos(ang)*L*0.5,c.y*0.5,c.z+Math.sin(ang)*L*0.5),new THREE.Vector3(c.x+Math.cos(ang)*L,0.02,c.z+Math.sin(ang)*L)]; scene.add(new THREE.Mesh(tubeAlong(pts,0.025,16),epsMat)); } }
+  // membrane vesicles and debris trapped in the matrix
+  const vMat=mat({tint:'#b0ada6',dark:'#101010',highlight:'#f0eee8',aoMin:1,bumpAmp:0.2,bumpFreq:60,edgeGain:0.9,edgePow:2.0});
+  for(let i=0;i<90;i++){ const r=R(0.03,0.08); const v=new THREE.Mesh(new THREE.SphereGeometry(r,12,8),vMat); const c=cells[Math.floor(rnd()*cells.length)]; v.position.set(c.x+RN()*1.2,r*0.8+ (rnd()<0.3?c.y+c.r*0.9:0),c.z+RN()*1.2); scene.add(v); }
   console.log('cells',cells.length,'strands',strands);
   camera.position.set(1.8,5.2,7.2); camera.lookAt(0.2,0.3,0.2);
-  post={focus:camera.position.distanceTo(new THREE.Vector3(0.6,0.4,0.6)),aperture:55,maxCoC:30,ao:{radius:0.5,strength:1.0},bloom:null,grain:0.065,vignette:0.55,contrast:1.14,lift:0,scan:1,shot:0};
+  post={focus:camera.position.distanceTo(new THREE.Vector3(0.6,0.4,0.6)),aperture:55,maxCoC:30,ao:{radius:0.45,strength:0.9,radius2:1.6,strength2:0.5},bloom:null,grain:0.065,vignette:0.55,contrast:1.14,lift:0,scan:1,shot:0};
 }
 
 function scene3(){ // Surfaces: confocal fluorescence, colonic epithelium + mucus + FISH-labelled bacteria
@@ -276,18 +304,26 @@ function scene3(){ // Surfaces: confocal fluorescence, colonic epithelium + mucu
   // hexagonally packed columnar cells (~8 µm apical width): apical junctions (ZO-1 style stain) read as a honeycomb from above
   const hexR=4.3; const junMat=mat(Object.assign({mode:'confocal',tint:'#9fd3d0',fill:0.75,edgeGain:0.0,edgePow:2.0,bumpAmp:0.7,bumpFreq:1.4},add));
   const nucGeo=new THREE.SphereGeometry(1,32,24);
+  const gobMat=mat(Object.assign({mode:'confocal',tint:'#c94fb0',fill:0.95,edgeGain:0.0,edgePow:2.0,bumpAmp:1.2,bumpFreq:1.1},add));
   const edgeGeo=new THREE.CylinderGeometry(0.22,0.22,hexR,6,1); edgeGeo.rotateZ(Math.PI/2);
   const seen=new Set(); const vj=new Map();
-  const vtx=(px,pz)=>{ const key=px.toFixed(1)+','+pz.toFixed(1); if(!vj.has(key)){ vj.set(key,[px+RN()*1.1,pz+RN()*1.1]); } return vj.get(key); }; // shared, jittered vertices -> irregular 5-7 sided cells
+  const vtx=(px,pz)=>{ const key=px.toFixed(1)+','+pz.toFixed(1); if(!vj.has(key)){ vj.set(key,[px+RN()*1.9,pz+RN()*1.9]); } return vj.get(key); }; // shared, jittered vertices -> irregular 5-7 sided cells
   for(let i=-7;i<=7;i++)for(let j=-7;j<=7;j++){
     const x=i*hexR*Math.sqrt(3)+(j%2?hexR*Math.sqrt(3)/2:0), z=j*hexR*1.5;
     for(let k=0;k<6;k++){ // hex edges, deduplicated by midpoint
       const a0=Math.PI/6+k*Math.PI/3, a1=a0+Math.PI/3;
       const p0=vtx(x+hexR*Math.cos(a0),z+hexR*Math.sin(a0)), p1=vtx(x+hexR*Math.cos(a1),z+hexR*Math.sin(a1));
       const key=((p0[0]+p1[0])/2).toFixed(1)+','+((p0[1]+p1[1])/2).toFixed(1); if(seen.has(key))continue; seen.add(key);
-      const e=new THREE.Mesh(edgeGeo,junMat); e.position.set((p0[0]+p1[0])/2,0.15+RN()*0.15,(p0[1]+p1[1])/2); e.rotation.y=-Math.atan2(p1[1]-p0[1],p1[0]-p0[0]); e.scale.x=Math.hypot(p1[0]-p0[0],p1[1]-p0[1])/hexR; scene.add(e);
+      const mx=(p0[0]+p1[0])/2, mz=(p0[1]+p1[1])/2, nx=-(p1[1]-p0[1]), nz=(p1[0]-p0[0]); const bow=RN()*0.16;
+      const pts=[new THREE.Vector3(p0[0],0.15,p0[1]),new THREE.Vector3(mx+nx*bow,0.15+RN()*0.1,mz+nz*bow),new THREE.Vector3(p1[0],0.15,p1[1])];
+      scene.add(new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(pts),10,R(0.18,0.26),6,false),junMat));
     }
-    const nu=new THREE.Mesh(nucGeo,nucMat); nu.position.set(x+RN()*0.9,-1.5,z+RN()*0.9); nu.scale.set(R(1.9,2.4),1.4,R(1.9,2.4)); nu.rotation.y=R(0,3); scene.add(nu);
+    if(rnd()<0.14){ // goblet cell: Muc2-filled theca (magenta) fills the apical cell, nucleus displaced basally and out of the plane
+      const g=new THREE.Mesh(nucGeo,gobMat); g.position.set(x+RN()*0.4,-0.6,z+RN()*0.4); g.scale.set(R(2.6,3.1),1.6,R(2.6,3.1)); g.rotation.y=R(0,3); scene.add(g);
+      const nu=new THREE.Mesh(nucGeo,nucMat); nu.position.set(x+RN()*0.5,-3.4,z+RN()*0.5); nu.scale.set(R(1.2,1.5),1.0,R(1.6,2.0)); scene.add(nu);
+    } else {
+      const nu=new THREE.Mesh(nucGeo,nucMat); nu.position.set(x+RN()*0.9,-1.5,z+RN()*0.9); nu.scale.set(R(1.8,2.4),1.4,R(1.8,2.4)); nu.rotation.y=R(0,3); scene.add(nu);
+    }
   }
   // mucus: Muc2 (magenta) soft haze, denser near the epithelium, thinning outward
   const cv=document.createElement('canvas'); cv.width=cv.height=64; const ctx=cv.getContext('2d');
@@ -299,10 +335,13 @@ function scene3(){ // Surfaces: confocal fluorescence, colonic epithelium + mucu
   // bacteria: general eubacteria probe (green) in outer mucus; Akkermansia-like ovals (amber) in the inner mucus, near the cells
   const gMat=mat(Object.assign({mode:'confocal',tint:'#86e57f',fill:1.0,edgeGain:0.15,edgePow:2.0,bumpAmp:0.6,bumpFreq:2.5},add));
   const aMat=mat(Object.assign({mode:'confocal',tint:'#f2a640',fill:1.0,edgeGain:0.15,edgePow:2.0,bumpAmp:0.6,bumpFreq:2.5},add));
-  const clusters=[]; for(let i=0;i<14;i++)clusters.push([R(-26,26),R(-26,26),R(3,6)]);
+  const clusters=[]; for(let i=0;i<10;i++)clusters.push([R(-26,26),R(-26,26),R(3,6)]);
   for(let i=0;i<230;i++){ const len=R(1.4,3.2),r=R(0.28,0.42); const rod=new THREE.Mesh(rodGeo({r,len,capSeg:6,bodySeg:8,radSeg:16,bend:R(-0.03,0.03)}),gMat);
-    const cl=clusters[Math.floor(rnd()*clusters.length)]; const inC=rnd()<0.7;
+    const cl=clusters[Math.floor(rnd()*clusters.length)]; const inC=rnd()<0.55;
     rod.position.set(inC?cl[0]+RN()*cl[2]:R(-26,26),1.5+Math.pow(rnd(),0.8)*5.0,inC?cl[1]+RN()*cl[2]:R(-26,26)); rod.rotation.set(RN()*0.5,R(0,6.28),Math.PI/2+RN()*0.6); scene.add(rod); }
+  for(let i=0;i<6;i++){ // a few long filaments in the outer mucus
+    const pts=[]; let x=R(-24,24),z=R(-24,24),a=R(0,6.28),y=R(3,7); for(let j=0;j<6;j++){pts.push(new THREE.Vector3(x,y+RN()*0.4,z)); a+=RN()*0.5; x+=Math.cos(a)*R(1.2,2.2); z+=Math.sin(a)*R(1.2,2.2);}
+    scene.add(new THREE.Mesh(tubeAlong(pts,R(0.3,0.4),40),gMat)); }
   for(let i=0;i<70;i++){ const rod=new THREE.Mesh(rodGeo({r:R(0.36,0.46),len:R(0.9,1.3),capSeg:6,bodySeg:6,radSeg:16}),aMat);
     rod.position.set(R(-26,26),R(0.6,2.4),R(-26,26)); rod.rotation.set(RN()*0.5,R(0,6.28),Math.PI/2+RN()*0.6); scene.add(rod); }
   camera.position.set(3,30,11); camera.lookAt(0,0.5,-3);
@@ -325,7 +364,7 @@ const invProj=camera.projectionMatrixInverse.clone();
 const DEPTHFN=`uniform sampler2D tDepth; uniform mat4 invProj; uniform vec2 res;
  vec3 viewPos(vec2 uv){ float d=texture2D(tDepth,uv).r; vec4 p=invProj*vec4(uv*2.0-1.0,d*2.0-1.0,1.0); return p.xyz/p.w; }`;
 // SSAO (depth only)
-let aoTex=null;
+let aoTex=null, aoTex2=null;
 if(post.ao){
   const kern=[]; for(let i=0;i<16;i++){ let v=new THREE.Vector3(R(-1,1),R(-1,1),R(0.15,1)).normalize(); let s=(i+1)/16; v.multiplyScalar(0.1+0.9*s*s); kern.push(v);}
   const aoRT=rt(W/2,H/2,false), aoRT2=rt(W/2,H/2,false);
@@ -346,13 +385,14 @@ if(post.ao){
   const blurMat=new THREE.ShaderMaterial({vertexShader:FSV,fragmentShader:`${DEPTHFN} uniform sampler2D tex; uniform vec2 px; varying vec2 vUv; void main(){ float z0=viewPos(vUv).z; float s=0.0,ws=0.0; for(int i=-2;i<=2;i++)for(int j=-2;j<=2;j++){ vec2 uv=vUv+vec2(float(i),float(j))*px; float w=exp(-abs(viewPos(uv).z-z0)*6.0); s+=texture2D(tex,uv).r*w; ws+=w;} gl_FragColor=vec4(vec3(s/ws),1.0); }`,
     uniforms:{tex:{value:aoRT.texture},px:{value:new THREE.Vector2(2/W,2/H)},tDepth:{value:sceneRT.depthTexture},invProj:{value:invProj},res:{value:new THREE.Vector2(W/2,H/2)}}});
   fs(aoRT2,blurMat); aoTex=aoRT2.texture;
+  if(post.ao.radius2){ const aoRT3=rt(W/2,H/2,false), aoRT4=rt(W/2,H/2,false); aoMat.uniforms.radius.value=post.ao.radius2; fs(aoRT3,aoMat); blurMat.uniforms.tex.value=aoRT3.texture; fs(aoRT4,blurMat); aoTex2=aoRT4.texture; }
 }
 // DOF gather (scatter-as-gather), applies AO
 const dofRT=rt(W,H,false);
-const dofMat=new THREE.ShaderMaterial({vertexShader:FSV,fragmentShader:`${DEPTHFN} uniform sampler2D tColor; uniform sampler2D tAO; uniform float useAO, aoStrength; uniform float focus, aperture, maxCoC; varying vec2 vUv;
+const dofMat=new THREE.ShaderMaterial({vertexShader:FSV,fragmentShader:`${DEPTHFN} uniform sampler2D tColor; uniform sampler2D tAO; uniform sampler2D tAO2; uniform float useAO, aoStrength, aoStrength2; uniform float focus, aperture, maxCoC; varying vec2 vUv;
   float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453);}
   float coc(vec2 uv){ float z=-viewPos(uv).z; return clamp(aperture*abs(1.0-focus/z),0.0,maxCoC); }
-  vec3 col(vec2 uv){ vec3 c=texture2D(tColor,uv).rgb; if(useAO>0.5){ float a=texture2D(tAO,uv).r; c*=mix(1.0,a,aoStrength);} return c; }
+  vec3 col(vec2 uv){ vec3 c=texture2D(tColor,uv).rgb; if(useAO>0.5){ float a=texture2D(tAO,uv).r; float a2=texture2D(tAO2,uv).r; c*=mix(1.0,a,aoStrength)*mix(1.0,a2,aoStrength2);} return c; }
   void main(){
     float c0=coc(vUv); vec3 acc=col(vUv); float wsum=1.0;
     float rot=hash(vUv*res)*6.2831; const int N=40; float gold=2.39996;
@@ -362,7 +402,7 @@ const dofMat=new THREE.ShaderMaterial({vertexShader:FSV,fragmentShader:`${DEPTHF
       w=max(w,smoothstep(r-1.5,r+1.5,c0)*step(cs,c0+2.0));
       acc+=col(suv)*w; wsum+=w; }
     gl_FragColor=vec4(acc/wsum,1.0); }`,
-  uniforms:{tDepth:{value:sceneRT.depthTexture},invProj:{value:invProj},res:{value:new THREE.Vector2(W,H)},tColor:{value:sceneRT.texture},tAO:{value:aoTex},useAO:{value:aoTex?1:0},aoStrength:{value:post.ao?post.ao.strength:0},focus:{value:post.focus},aperture:{value:post.aperture},maxCoC:{value:post.maxCoC}}});
+  uniforms:{tDepth:{value:sceneRT.depthTexture},invProj:{value:invProj},res:{value:new THREE.Vector2(W,H)},tColor:{value:sceneRT.texture},tAO:{value:aoTex},tAO2:{value:aoTex2||aoTex},useAO:{value:aoTex?1:0},aoStrength:{value:post.ao?post.ao.strength:0},aoStrength2:{value:(post.ao&&aoTex2)?post.ao.strength2:0},focus:{value:post.focus},aperture:{value:post.aperture},maxCoC:{value:post.maxCoC}}});
 fs(dofRT,dofMat);
 // bloom (confocal glow)
 let bloomTex=null;
