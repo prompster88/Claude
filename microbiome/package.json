@@ -1,0 +1,11 @@
+{
+  "name": "microbiome-renders",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Procedural microscopy-style renders of the human gut microbiome (SEM, colorized SEM, confocal).",
+  "scripts": {
+    "serve": "python3 -m http.server 8765",
+    "render": "node shoot.cjs 1,2,3 2000 1250"
+  },
+  "dependencies": { "three": "0.169.0" }
+}
