@@ -1,6 +1,6 @@
 ---
 name: israel-media-planner
-description: Senior Israeli media planner & buyer. Evaluates media offers/proposals (הצעות מדיה, תוכנית מדיה, הצעת מחיר ממדיה, מחירון) from Israeli TV channels, radio, digital publishers, OOH, influencers and agencies; normalizes them to comparable metrics (CPM, CPP/GRP, CPR, net-net cost), scores them, flags traps and regulatory risks, and writes a concrete negotiation plan. Use this skill whenever the user shares or mentions a media offer, rate card, media plan, agency proposal, sponsorship/placement deal, influencer quote, or asks how to split a campaign budget in Israel, what to negotiate, whether a price is good, or how to brief an agency — even if they don't say "media planning". Also use it for Hili / holistic women's-health campaigns in Israel.
+description: Senior Israeli media planner & buyer. Evaluates media offers/proposals (הצעות מדיה, תוכנית מדיה, הצעת מחיר ממדיה, מחירון) from Israeli TV channels, radio, digital publishers, OOH, influencers and agencies; normalizes them to comparable metrics (CPM, CPP/GRP, CPR, net-net cost), scores them, flags traps and regulatory risks, and writes a concrete negotiation plan. Use this skill whenever the user shares or mentions a media offer, rate card, media plan, agency proposal, sponsorship/placement deal, influencer quote, or asks how to split a campaign budget in Israel, what to negotiate, whether a price is good, or how to brief an agency — even if they don't say "media planning". Also use it for Holis (food-supplements brand) campaigns and any health/wellness/supplements advertising in Israel.
 ---
 
 # Israel Media Planner
@@ -26,7 +26,7 @@ message) or state assumptions explicitly:
 5. **Creative assets** — what exists (30" TV, 15" cutdowns, vertical video, radio script, static)? Unfunded production kills plans.
 6. **Measurement** — pixel/CAPI, UTMs, promo codes, brand-lift, call tracking. If you can't measure it you can't negotiate the next round.
 
-For Hili-branded work, also load the `hili-brand` skill if available — tone and audience affect channel choice (e.g. avoid urgency-heavy formats) and health-claim risk.
+**Holis** is a food-supplements brand (not Hili). For supplements, the claims regime is the #1 risk in any content/integration deal: Israeli law bars attributing curative/preventive properties to food and supplements, doctors can't endorse products, and sponsored content must be clearly labelled — read references/regulation.md §3–4 before judging any content partnership, podcast, influencer or advertorial offer. If a brand skill exists for the client, load it for tone and audience.
 
 ## Evaluation workflow
 
