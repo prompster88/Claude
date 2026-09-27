@@ -129,4 +129,4 @@ Match the user's language (Hebrew or English); media terms in Hebrew are often m
 - `references/market-benchmarks.md` — market size, channels, pricing ranges, seasonality, agency landscape. Read when judging price levels or channel choice.
 - `references/regulation.md` — Second Authority, Ministry of Health, Consumer Protection, spam, privacy, platform policies. Read before approving creative, content integrations, influencer deals, or health-related messaging.
 - `references/negotiation-playbook.md` — levers, tactics, Hebrew phrasing, contract clauses. Read when drafting the negotiation plan.
-- `scripts/offer_evaluator.py` — normalizes offer lines (CSV/JSON) to net CPM/CPP and flags vs. benchmark ranges.
+- `scripts/offer_evaluator.py` — normalizes offer lines (CSV/JSON) to net CPM/CPP and flags vs. benchmark ranges (`scripts/benchmarks.json`; update it with the user's own results). See `assets/sample_offers.csv` for the input format. Fill in unknown fields with conservative assumptions and say so.

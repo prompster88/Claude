@@ -1,0 +1,10 @@
+{
+  "_note": "ILS, net, ex-VAT. Researched Sept 2026 from agency-blog ranges and vendor reports — weak evidence, estimates marked. Replace with the user's own historical results whenever available. See references/market-benchmarks.md.",
+  "social":     {"cpm": [15, 45], "cpc": [1, 3], "_source": "Israeli agency blogs 2025 (MPO, Bidernet); TikTok CPM 18-60"},
+  "search":     {"cpc": [0.9, 3.5], "_source": "BoostIt/Talsa 2025; health/legal verticals can be far higher"},
+  "display":    {"cpm": [15, 40], "_source": "ESTIMATE — no verified publisher CPMs; net viewable CPM on premium Israeli publishers"},
+  "video":      {"cpm": [30, 80], "cpcv": [0.1, 0.35], "_source": "ESTIMATE"},
+  "native":     {"cpc": [0.8, 2.5], "_source": "ESTIMATE (Taboola/Teads)"},
+  "influencer": {"cpm": [50, 150], "_source": "Humanz: ~7 agorot per organic view (= ₪70 CPM); story ₪6-9k for 70-100k followers"},
+  "podcast":    {"cpm": [400, 900], "_source": "Globes: ₪20-25k per episode at 30k+ listens"}
+}

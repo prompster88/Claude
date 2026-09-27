@@ -87,11 +87,14 @@ def evaluate(row, bench, vat):
 
     # Benchmark comparison
     b = bench.get(medium, {})
+    # Benchmark "cpm" is a market (nominal) CPM, so compare it to cpm_nominal.
+    alias = {"cpm": "cpm_nominal"}
     for metric, rng in b.items():
-        if metric.startswith("_") or metric not in m:
+        key = alias.get(metric, metric)
+        if metric.startswith("_") or key not in m:
             continue
         lo, hi = rng
-        val = m[metric]
+        val = m[key]
         if val > hi:
             out["flags"].append(f"{metric} {val} ABOVE typical range {lo}-{hi} (+{round((val / hi - 1) * 100)}% over top)")
         elif val < lo:
@@ -100,6 +103,9 @@ def evaluate(row, bench, vat):
             out["flags"].append(f"{metric} {val} within typical range {lo}-{hi}")
 
     # Hygiene flags
+    if m.get("cpm_effective") and m.get("cpm_nominal") and m["cpm_effective"] > 2 * m["cpm_nominal"]:
+        waste = round((1 - m["cpm_nominal"] / m["cpm_effective"]) * 100)
+        out["flags"].append(f"~{waste}% of impressions are non-viewable or off-target — cheap CPM is misleading")
     if not impressions and not grps and medium not in ("sponsorship",):
         out["flags"].append("No delivery guarantee (impressions/GRPs) — ask for one")
     if impressions and num(row, "viewability_pct", -1) == -1 and medium in ("display", "video", "native"):
